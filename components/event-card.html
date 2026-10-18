@@ -46,3 +46,42 @@
         </button>
     </form>
 </div>
+
+<!-- Supabase JS Client & Logik -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MzUyODM1OCwiZXhwIjoyMDk5MTA0MzU4fQ.l5IzgnUsLOKwSM-sSk_fziY9U85f8Duc097puSSsleM';
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    document.getElementById('eventBookingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const eventName = document.getElementById('eventSelect').value;
+        const name = document.getElementById('userName').value;
+        const email = document.getElementById('userEmail'.value);
+        const count = document.getElementById('ticketCount').value;
+        const notes = document.getElementById('userNotes').value;
+
+        const { error } = await supabaseClient
+            .from('event_bookings')
+            .insert([
+                { 
+                    event_name: eventName, 
+                    applicant_name: name, 
+                    email: email, 
+                    count: parseInt(count), 
+                    notes: notes, 
+                    status: 'pending' 
+                }
+            ]);
+
+        if (error) {
+            alert('Fehler beim Absenden: ' + error.message);
+        } else {
+            alert('Vielen Dank! Deine Anfrage wurde erfolgreich übermittelt.');
+            document.getElementById('eventBookingForm').reset();
+        }
+    });
+</script>
