@@ -1,17 +1,74 @@
-<!-- Skript zum dynamischen Laden des Event-Moduls -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrayFürAlle e.V. – Gemeinsam für unseren Stadtteil</title>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --bg-light: #f8fafc;
+            --text-main: #334155;
+            --text-light: #64748b;
+            --white: #ffffff;
+            --radius: 12px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-light); color: var(--text-main); line-height: 1.6; }
+        
+        .container { max-width: 900px; margin: 3rem auto; padding: 0 1.5rem; }
+        
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #1e293b 100%);
+            color: var(--white);
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .hero p { color: #94a3b8; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Bereich -->
+    <header class="hero">
+        <h1>Gemeinsam für unseren Stadtteil.</h1>
+        <p>Willkommen bei KrayFürAlle e.V.</p>
+    </header>
+
+    <main class="container">
+        <!-- Event-Modul Bereich -->
+        <div id="event-module">
+            <p style="text-align: center; color: #64748b;">Lade Modul...</p>
+        </div>
+    </main>
+
+    <!-- Skript zum dynamischen Laden des Event-Moduls -->
     <script>
         fetch('components/event-card.html')
-            .then(response => {
+            .then(function(response) {
                 if (!response.ok) {
-                    throw new Error('Datei nicht gefunden (404)');
+                    throw new Error('Netzwerk-Antwort war nicht ok');
                 }
                 return response.text();
             })
-            .then(data => {
+            .then(function(data) {
                 document.getElementById('event-module').innerHTML = data;
             })
-            .catch(error => {
-                console.error(error);
-                document.getElementById('event-module').innerHTML = '<p style="color: #ef4444; text-align: center;">Das Event-Modul konnte nicht geladen werden.</p>';
+            .catch(function(error) {
+                console.error('Fehler beim Laden:', error);
+                document.getElementById('event-module').innerHTML = '<p style="color: red; text-align: center;">Das Event-Modul konnte nicht geladen werden.</p>';
             });
     </script>
+
+</body>
+</html>
