@@ -1,0 +1,48 @@
+<div class="event-card-wrapper" style="background: #ffffff; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="width: 50px; height: 50px; background: #eff6ff; color: #2563eb; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <div>
+            <h3 style="font-size: 1.35rem; color: #0f172a; margin-bottom: 0.2rem;">Veranstaltung buchen & anfragen</h3>
+            <p style="color: #64748b; font-size: 0.95rem;">Wähle dein Event aus und sende uns direkt eine Teilnahme-Anfrage.</p>
+        </div>
+    </div>
+
+    <form id="eventBookingForm" style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div>
+            <label style="display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.4rem; color: #334155;">Veranstaltung wählen:</label>
+            <select id="eventSelect" required style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 1rem; background: #fff;">
+                <option value="Stadtteiltreffen Kray">Stadtteiltreffen Kray (Jeden 1. Donnerstag)</option>
+                <option value="Sommerfest 2026">Krayer Sommerfest 2026</option>
+                <option value="Digital-Sprechstunde">Digital-Sprechstunde für Bürger</option>
+            </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+            <div>
+                <label style="display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.4rem; color: #334155;">Dein Name:</label>
+                <input type="text" id="userName" placeholder="Max Mustermann" required style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 1rem;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.4rem; color: #334155;">E-Mail-Adresse:</label>
+                <input type="email" id="userEmail" placeholder="max@example.de" required style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 1rem;">
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem;">
+            <div>
+                <label style="display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.4rem; color: #334155;">Personen:</label>
+                <input type="number" id="ticketCount" min="1" value="1" required style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 1rem;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.4rem; color: #334155;">Anmerkung (optional):</label>
+                <input type="text" id="userNotes" placeholder="z.B. Rollstuhlplatz benötigt" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 1rem;">
+            </div>
+        </div>
+
+        <button type="submit" style="background: #2563eb; color: #ffffff; padding: 0.85rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 1rem; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background 0.2s;">
+            <i class="fa-solid fa-paper-plane"></i> Anfrage kostenfrei absenden
+        </button>
+    </form>
+</div>
