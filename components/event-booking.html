@@ -7,7 +7,6 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 </script>
 
-<!-- 2. Euer bestehendes HTML-Formular -->
 <div class="card" id="event-booking-module" style="background: #ffffff; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;">
     <h3 style="font-size: 1.5rem; color: #0f172a; margin-bottom: 0.5rem;">
         <i class="fa-solid fa-calendar-check" style="color: #2563eb; margin-right: 0.5rem;"></i>
@@ -53,39 +52,57 @@
     </form>
 </div>
 
-<!-- 3. Das Skript zum Absenden der Daten an Supabase -->
+<!-- Direkt integriertes Skript mit Event-Delegation für dynamisch geladene Komponenten -->
 <script>
-document.getElementById('eventBookingForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+if (typeof supabaseClient === 'undefined') {
+    // Falls das Supabase-Script noch nicht geladen ist, dynamisch einbinden
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+    script.onload = function() {
+        window.supabaseClient = window.supabase.createClient('DEINE_SUPABASE_URL', 'DEIN_SUPABASE_ANON_KEY');
+    };
+    document.head.appendChild(script);
+}
 
-    const eventName = document.getElementById('eventSelect').value;
-    const applicantName = document.getElementById('userName').value;
-    const email = document.getElementById('userEmail').value;
-    const count = parseInt(document.getElementById('ticketCount').value) || 1;
-    const notes = document.getElementById('userNotes').value;
+// Globaler Event-Listener (fängt das Absenden ab, egal wann das Formular geladen wurde)
+document.addEventListener('submit', async function(e) {
+    if (e.target && e.target.id === 'eventBookingForm') {
+        e.preventDefault();
+        console.log("Formular abgesendet!");
 
-    try {
-        const { data, error } = await supabaseClient
-            .from('event_bookings')
-            .insert([
-                { 
-                    event_name: eventName,
-                    applicant_name: applicantName,
-                    email: email,
-                    count: count,
-                    notes: notes,
-                    status: 'pending'
-                }
-            ]);
+        const eventName = document.getElementById('eventSelect').value;
+        const applicantName = document.getElementById('userName').value;
+        const email = document.getElementById('userEmail').value;
+        const count = parseInt(document.getElementById('ticketCount').value) || 1;
+        const notes = document.getElementById('userNotes').value;
 
-        if (error) {
-            alert('Fehler beim Senden: ' + error.message);
-        } else {
-            alert('Deine Teilnahme-Anfrage wurde erfolgreich abgesendet!');
-            document.getElementById('eventBookingForm').reset();
+        try {
+            const client = window.supabaseClient || window.supabase.createClient('DEINE_SUPABASE_URL', 'DEIN_SUPABASE_ANON_KEY');
+            
+            const { data, error } = await client
+                .from('event_bookings')
+                .insert([
+                    { 
+                        event_name: eventName,
+                        applicant_name: applicantName,
+                        email: email,
+                        count: count,
+                        notes: notes,
+                        status: 'pending'
+                    }
+                ]);
+
+            if (error) {
+                console.error("Supabase Fehler:", error);
+                alert('Fehler beim Senden: ' + error.message);
+            } else {
+                alert('Deine Teilnahme-Anfrage wurde erfolgreich abgesendet!');
+                e.target.reset();
+            }
+        } catch (err) {
+            console.error("Catch Fehler:", err);
+            alert('Ein unerwarteter Fehler ist aufgetreten.');
         }
-    } catch (err) {
-        alert('Ein unerwarteter Fehler ist aufgetreten.');
     }
 });
 </script>
