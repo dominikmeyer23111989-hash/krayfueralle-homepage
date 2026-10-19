@@ -388,4 +388,51 @@
             const content = document.getElementById('newsContent').value;
             const imageFile = document.getElementById('newsImage').files[0];
 
-            let imageUrl
+            let imageUrl = '';
+
+            try {
+                if (imageFile) {
+                    const fileExt = imageFile.name.split('.').pop();
+                    const fileName = `${Date.now()}.${fileExt}`;
+                    const filePath = `${fileName}`;
+
+                    const { error: uploadError } = await supabaseClient.storage
+                        .from('news-images')
+                        .upload(filePath, imageFile);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: publicURLData } = supabaseClient.storage
+                        .from('news-images')
+                        .getPublicUrl(filePath);
+
+                    imageUrl = publicURLData.publicUrl;
+                }
+
+                const { error: insertError } = await supabaseClient
+                    .from('aktuelles')
+                    .insert([
+                        { titel: title, inhalt: content, autor: author, bild_url: imageUrl }
+                    ]);
+
+                if (insertError) throw insertError;
+
+                formAlert.textContent = 'Beitrag erfolgreich veröffentlicht!';
+                formAlert.className = 'alert alert-success';
+                formAlert.classList.remove('hidden');
+                newsForm.reset();
+
+                loadManageNews();
+
+            } catch (err) {
+                formAlert.textContent = 'Fehler beim Veröffentlichen: ' + err.message;
+                formAlert.className = 'alert alert-error';
+                formAlert.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Beitrag veröffentlichen';
+            }
+        });
+    </script>
+</body>
+</html>
