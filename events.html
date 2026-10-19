@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events & Aktionen – KrayFürAlle e.V.</title>
-    <!-- Favicon Platzhalter (verhindert den 404 Fehler, falls kein Favicon da ist) -->
+    <!-- Favicon Platzhalter (verhindert 404 Fehler) -->
     <link rel="icon" href="data:,">
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome mit crossorigin Attribut, um Tracking-Blockaden zu minimieren -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     
     <style>
@@ -77,32 +76,28 @@
     <!-- Footer-Modul -->
     <div data-include="components/footer.html"></div>
 
- <!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/include.js"></script>
+    <!-- Supabase SDK & Include Modul-Lader -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/include.js"></script>
 
-<!-- Robuster Supabase Formular-Handler -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        console.log("DOM komplett geladen, initialisiere Supabase...");
-
-        // Prüfen, ob das Supabase-Objekt verfügbar ist
-        const supabaseLib = window.supabase || supabase;
-        if (!supabaseLib) {
-            console.error("Supabase SDK konnte nicht geladen werden!");
-            return;
-        }
+    <!-- Direkter Supabase Formular-Handler -->
+    <script>
+        console.log("Skript wird ausgeführt...");
 
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
         
-        const supabaseClient = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Supabase-Client initialisieren
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const bookingForm = document.getElementById('eventBookingForm');
+        
         if (bookingForm) {
+            console.log("Formular 'eventBookingForm' erfolgreich gefunden. Hänge Listener an...");
+
             bookingForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                console.log("Absenden-Button geklickt, übertrage Daten...");
+                console.log("Senden-Button geklickt! Übertrage Daten an Supabase...");
 
                 const eventName = document.getElementById('eventSelect').value;
                 const applicantName = document.getElementById('userName').value;
@@ -125,19 +120,21 @@
                         ]);
 
                     if (error) {
-                        console.error("Supabase Fehlerdetails:", error);
-                        alert('Supabase-Fehler: ' + error.message);
+                        console.error("Supabase Datenbank-Fehler:", error);
+                        alert('Fehler beim Senden: ' + error.message);
                     } else {
-                        alert('Deine Teilnahme-Anfrage wurde erfolgreich in Supabase gespeichert!');
+                        console.log("Erfolgreich gespeichert:", data);
+                        alert('Deine Teilnahme-Anfrage wurde erfolgreich abgesendet!');
                         bookingForm.reset();
                     }
                 } catch (err) {
                     console.error("Unerwarteter Catch-Fehler:", err);
-                    alert('Ein unerwarteter Fehler ist aufgetreten: ' + err.message);
+                    alert('Ein unerwarteter Fehler ist aufgetreten.');
                 }
             });
         } else {
-            console.error("Formular 'eventBookingForm' wurde im DOM nicht gefunden.");
+            console.error("FEHLER: Formular 'eventBookingForm' wurde im HTML nicht gefunden!");
         }
-    });
-</script>
+    </script>
+</body>
+</html>
