@@ -59,13 +59,13 @@
 
     <main class="container">
         <h1 class="header-title">Belegungsplan & Anfragen</h1>
-        <p class="header-subtitle">Klicke auf einen Tag im Kalender, um ein Wunschdatum für eine Buchung oder Buchungsanfrage auszuwählen.</p>
+        <p class="header-subtitle">Klicke auf einen Tag im Kalender, um ein Wunschdatum auszuwählen oder auf ein Event, um eine Teilnahme anzufreggen.</p>
 
         <!-- 1. Interaktiver Kalender -->
         <div class="card">
             <h3 style="font-size: 1.3rem; color: var(--text-main); margin-top: 0; margin-bottom: 1.5rem;">
                 <i class="fa-solid fa-calendar-days" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
-                Kalender & Belegung
+                Kalender & Vereins-Termine
             </h3>
             <div id="calendar"></div>
         </div>
@@ -79,7 +79,7 @@
             <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Wähle oben im Kalender dein Wunschdatum aus oder trage es hier direkt ein.</p>
 
             <div id="selectedDateBadge" class="selected-date-badge" style="display: none;">
-                <i class="fa-solid fa-calendar-check"></i> <span>Ausgewähltes Datum: <strong id="badgeDateText">-</strong></span>
+                <i class="fa-solid fa-calendar-check"></i> <span>Ausgewähltes Datum / Event: <strong id="badgeDateText">-</strong></span>
             </div>
 
             <form id="eventBookingForm">
@@ -148,25 +148,57 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         document.addEventListener('DOMContentLoaded', async function() {
-            // 1. Termine dynamisch aus Supabase laden (z. B. aus Tabelle "events" oder "public_events")
             let calendarEvents = [];
+
+            // 1. Daten aus Tabelle "events" laden (Spalten: name, start_datum, ort etc.)
             try {
-                const { data, error } = await supabaseClient
+                const { data: eventsData, error: eventsError } = await supabaseClient
                     .from('events')
                     .select('*');
                 
-                if (!error && data) {
-                    calendarEvents = data.map(evt => ({
-                        title: evt.title || evt.event_name,
-                        start: evt.start_date || evt.created_at,
-                        color: evt.color || '#2563eb'
+                if (!eventsError && eventsData) {
+                    const mappedEvents = eventsData.map(evt => ({
+                        title: evt.name || 'Veranstaltung',
+                        start: evt.start_datum,
+                        color: '#2563eb', // Blau für Events
+                        extendedProps: {
+                            ort: evt.ort,
+                            beschreibung: evt.bemerkungen
+                        }
                     }));
+                    calendarEvents = calendarEvents.concat(mappedEvents);
+                } else {
+                    console.log("Fehler beim Laden von 'events':", eventsError);
                 }
             } catch (e) {
-                console.log("Hinweis: Eigene Termine noch nicht aus der events-Tabelle geladen.");
+                console.log("Tabelle 'events' konnte nicht geladen werden:", e);
             }
 
-            // 2. FullCalendar Initialisieren
+            // 2. Daten aus Tabelle "termine" laden (Spalten: titel, datum, beschreibung etc.)
+            try {
+                const { data: termineData, error: termineError } = await supabaseClient
+                    .from('termine')
+                    .select('*');
+                
+                if (!termineError && termineData) {
+                    const mappedTermine = termineData.map(term => ({
+                        title: term.titel || 'Termin',
+                        start: term.datum,
+                        color: '#0d9488', // Türkis für Termine
+                        extendedProps: {
+                            ort: term.ort,
+                            beschreibung: term.beschreibung
+                        }
+                    }));
+                    calendarEvents = calendarEvents.concat(mappedTermine);
+                } else {
+                    console.log("Fehler beim Laden von 'termine':", termineError);
+                }
+            } catch (e) {
+                console.log("Tabelle 'termine' konnte nicht geladen werden:", e);
+            }
+
+            // 3. FullCalendar Initialisieren
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -174,30 +206,32 @@
                 buttonText: { today: 'Heute' },
                 events: calendarEvents,
                 
-                // Klick auf ein beliebiges Datum (für Veranstalter / freie Anfragen)
+                // Klick auf ein freies Datum (für Veranstalter / Vermietung)
                 dateClick: function(info) {
-                    const selectedDate = info.dateStr; // Format: YYYY-MM-DD
-                    
-                    // Datum ins Formular setzen
+                    const selectedDate = info.dateStr;
                     document.getElementById('requestDate').value = selectedDate;
+                    document.getElementById('bookingType').value = "Vereinsbuchung / Veranstalter";
                     
-                    // Formatierung für Anzeige (DD.MM.YYYY)
                     const formattedDate = new Date(selectedDate).toLocaleDateString('de-DE');
-                    document.getElementById('badgeDateText').innerText = formattedDate;
+                    document.getElementById('badgeDateText').innerText = "Wunschdatum: " + formattedDate;
                     document.getElementById('selectedDateBadge').style.display = 'inline-flex';
                     
-                    // Sanft zum Formular scrollen
                     document.getElementById('booking-section').scrollIntoView({ behavior: 'smooth' });
                 },
 
-                // Klick auf ein bereits eingetragenes Event
+                // Klick auf ein bestehendes Event aus App/Datenbank
                 eventClick: function(info) {
                     const title = info.event.title;
                     const eventDate = info.event.startStr.split('T')[0];
+                    const props = info.event.extendedProps;
 
                     document.getElementById('eventTitleInput').value = title;
                     document.getElementById('requestDate').value = eventDate;
                     document.getElementById('bookingType').value = "Teilnahme an Veranstaltung";
+                    
+                    if (props.ort) {
+                        document.getElementById('userNotes').value = "Ort: " + props.ort;
+                    }
 
                     const formattedDate = new Date(eventDate).toLocaleDateString('de-DE');
                     document.getElementById('badgeDateText').innerText = title + " (" + formattedDate + ")";
@@ -208,7 +242,7 @@
             });
             calendar.render();
 
-            // 3. Formular Submit Handler für Supabase
+            // 4. Formular Absenden an Supabase (event_bookings)
             const bookingForm = document.getElementById('eventBookingForm');
             if (bookingForm) {
                 bookingForm.addEventListener('submit', async function(e) {
@@ -222,7 +256,6 @@
                     const count = parseInt(document.getElementById('ticketCount').value) || 1;
                     const userNotes = document.getElementById('userNotes').value;
 
-                    // Zusammenfassender Event-Name für Supabase
                     const fullEventName = customTitle 
                         ? `[${bookingType}] ${customTitle} (Datum: ${reqDate})`
                         : `[${bookingType}] Datum: ${reqDate}`;
@@ -245,7 +278,7 @@
                             console.error("Supabase Fehler:", error);
                             alert('Fehler beim Senden: ' + error.message);
                         } else {
-                            alert('Deine Anfrage für den ' + new Date(reqDate).toLocaleDateString('de-DE') + ' wurde erfolgreich übermittelt!');
+                            alert('Deine Anfrage wurde erfolgreich übermittelt!');
                             bookingForm.reset();
                             document.getElementById('selectedDateBadge').style.display = 'none';
                         }
