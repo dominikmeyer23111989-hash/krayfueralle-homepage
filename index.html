@@ -179,7 +179,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/include.js"></script>
 
-    <!-- Script: Lädt die nächsten 3 Termine aus Supabase -->
+    <!-- Script: Lädt nur ZUKÜNFTIGE Termine aus Supabase -->
     <script>
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
@@ -189,59 +189,76 @@
         document.addEventListener('DOMContentLoaded', async function() {
             const previewGrid = document.getElementById('eventsPreviewGrid');
             let combinedEvents = [];
+            
+            // Heutiges Datum (auf Mitternacht gesetzt für genauen Tagesvergleich)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-            // 1. Events laden
+            // 1. Events aus Supabase laden
             try {
                 const { data: eventsData } = await supabaseClient.from('events').select('*');
                 if (eventsData) {
                     eventsData.forEach(evt => {
                         if (evt.start_datum) {
-                            combinedEvents.push({
-                                title: evt.name || 'Veranstaltung',
-                                dateStr: evt.start_datum,
-                                ort: evt.ort || 'Kray',
-                                type: 'Event'
-                            });
+                            const evtDate = new Date(evt.start_datum);
+                            // Nur zukünftige oder heutige Events aufnehmen
+                            if (evtDate >= today) {
+                                combinedEvents.push({
+                                    title: evt.name || 'Veranstaltung',
+                                    dateObj: evtDate,
+                                    dateStr: evt.start_datum,
+                                    ort: evt.ort || 'Kray',
+                                    type: 'Event'
+                                });
+                            }
                         }
                     });
                 }
             } catch (e) { console.log(e); }
 
-            // 2. Termine laden
+            // 2. Termine aus Supabase laden
             try {
                 const { data: termineData } = await supabaseClient.from('termine').select('*');
                 if (termineData) {
                     termineData.forEach(term => {
                         if (term.datum) {
-                            combinedEvents.push({
-                                title: term.titel || 'Termin',
-                                dateStr: term.datum,
-                                ort: term.ort || 'Kray',
-                                type: 'Termin'
-                            });
+                            const termDate = new Date(term.datum);
+                            // Nur zukünftige oder heutige Termine aufnehmen
+                            if (termDate >= today) {
+                                combinedEvents.push({
+                                    title: term.titel || 'Termin',
+                                    dateObj: termDate,
+                                    dateStr: term.datum,
+                                    ort: term.ort || 'Kray',
+                                    type: 'Termin'
+                                });
+                            }
                         }
                     });
                 }
             } catch (e) { console.log(e); }
 
-            // 3. Nach Datum sortieren und die 3 nächsten nehmen
-            combinedEvents.sort((a, b) => new Date(a.dateStr) - new Date(b.dateStr));
+            // 3. Chronologisch nach Datum sortieren (nächster Termin zuerst)
+            combinedEvents.sort((a, b) => a.dateObj - b.dateObj);
+            
+            // Nur die nächsten 3 Termine nehmen
             const upcoming = combinedEvents.slice(0, 3);
 
+            // 4. Wenn keine zukünftigen Termine da sind, Platzhalter anzeigen
             if (upcoming.length === 0) {
                 previewGrid.innerHTML = `
-                    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
-                        <p>Derzeit sind keine bevorstehenden Termine eingetragen.</p>
+                    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                        <i class="fa-solid fa-calendar-xmark" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
+                        <p style="margin: 0;">Derzeit sind keine bevorstehenden Termine eingetragen.</p>
                     </div>
                 `;
                 return;
             }
 
-            // 4. HTML rendern
+            // 5. HTML für die echten, zukünftigen Termine rendern
             let html = '';
             upcoming.forEach(item => {
-                const dateObj = new Date(item.dateStr);
-                const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const formattedDate = item.dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
                 html += `
                     <div class="card">
