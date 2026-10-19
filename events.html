@@ -33,7 +33,7 @@
         .card { background: var(--card-bg); padding: 2rem; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 2rem; }
         
         /* FullCalendar Custom Styling */
-        .fc { font-family: 'Inter', sans-serif; }
+        .fc { font-family: 'Inter', sans-serif; min-height: 500px; }
         .fc-toolbar-title { font-size: 1.3rem !important; font-weight: 600; color: var(--text-main); }
         .fc-button-primary { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; border-radius: 8px !important; }
         .fc-button-primary:hover { background-color: var(--primary-hover) !important; }
@@ -83,7 +83,7 @@
     <!-- MASK 1: Event-Details & Teilnahme Modal -->
     <div id="eventDetailModal" class="modal-backdrop">
         <div class="modal-card">
-            <button class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
             
             <span style="background: #e0e7ff; color: #3730a3; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Vereins-Termin</span>
             <h2 id="modalEventTitle" style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 1rem 0;">-</h2>
@@ -135,7 +135,7 @@
     <!-- MASK 2: Veranstalter / Vermietung Anfrage Modal -->
     <div id="bookingRequestModal" class="modal-backdrop">
         <div class="modal-card">
-            <button class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
 
             <span style="background: #fef3c7; color: #92400e; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Buchungsanfrage</span>
             <h2 style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 0.5rem 0;">Veranstalter- / Terminanfrage</h2>
@@ -202,48 +202,53 @@
 
             // 1. Tabelle 'events' auslesen
             try {
-                const { data: eventsData } = await supabaseClient.from('events').select('*');
-                if (eventsData) {
+                const { data: eventsData, error: err1 } = await supabaseClient.from('events').select('*');
+                if (!err1 && eventsData) {
                     eventsData.forEach(evt => {
-                        calendarEvents.push({
-                            title: evt.name,
-                            start: evt.start_datum,
-                            color: '#2563eb',
-                            extendedProps: {
-                                type: 'Event',
-                                ort: evt.ort,
-                                startZeit: evt.uhrzeit_start,
-                                endZeit: evt.uhrzeit_ende,
-                                beschreibung: evt.bemerkungen,
-                                ansprechperson: evt.ansprechperson
-                            }
-                        });
+                        if (evt.start_datum) {
+                            calendarEvents.push({
+                                title: evt.name || 'Veranstaltung',
+                                start: evt.start_datum,
+                                color: '#2563eb',
+                                extendedProps: {
+                                    type: 'Event',
+                                    ort: evt.ort || '',
+                                    startZeit: evt.uhrzeit_start || '',
+                                    endZeit: evt.uhrzeit_ende || '',
+                                    beschreibung: evt.bemerkungen || '',
+                                    ansprechperson: evt.ansprechperson || ''
+                                }
+                            });
+                        }
                     });
                 }
-            } catch (e) { console.log(e); }
+            } catch (e) { console.error("Events Fehler:", e); }
 
             // 2. Tabelle 'termine' auslesen
             try {
-                const { data: termineData } = await supabaseClient.from('termine').select('*');
-                if (termineData) {
+                const { data: termineData, error: err2 } = await supabaseClient.from('termine').select('*');
+                if (!err2 && termineData) {
                     termineData.forEach(term => {
-                        calendarEvents.push({
-                            title: term.titel,
-                            start: term.datum,
-                            color: '#0d9488',
-                            extendedProps: {
-                                type: 'Termin',
-                                ort: term.ort,
-                                startZeit: term.uhrzeit_von,
-                                endZeit: term.uhrzeit_bis,
-                                beschreibung: term.beschreibung
-                            }
-                        });
+                        if (term.datum) {
+                            calendarEvents.push({
+                                title: term.titel || 'Termin',
+                                start: term.datum,
+                                color: '#0d9488',
+                                extendedProps: {
+                                    type: 'Termin',
+                                    ort: term.ort || '',
+                                    startZeit: term.uhrzeit_von || '',
+                                    endZeit: term.uhrzeit_bis || '',
+                                    beschreibung: term.beschreibung || '',
+                                    ansprechperson: ''
+                                }
+                            });
+                        }
                     });
                 }
-            } catch (e) { console.log(e); }
+            } catch (e) { console.error("Termine Fehler:", e); }
 
-            // 3. Kalender initialisieren
+            // 3. Kalender rendering
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -251,18 +256,17 @@
                 buttonText: { today: 'Heute' },
                 events: calendarEvents,
                 
-                // USECASE 1: Klick auf ein Event -> Details + Teilnahme Modal
+                // USECASE 1: Klick auf ein bestehendes Event -> Details + Teilnahme Modal
                 eventClick: function(info) {
                     const evt = info.event;
-                    const props = evt.extendedProps;
-                    const dateFormatted = new Date(evt.startStr).toLocaleDateString('de-DE');
+                    const props = evt.extendedProps || {};
+                    const dateFormatted = evt.start ? new Date(evt.start).toLocaleDateString('de-DE') : '-';
 
                     document.getElementById('modalEventTitle').innerText = evt.title;
                     document.getElementById('modalEventDate').innerText = dateFormatted;
                     document.getElementById('partEventTitle').value = evt.title;
-                    document.getElementById('partEventDate').value = evt.startStr.split('T')[0];
+                    document.getElementById('partEventDate').value = evt.startStr ? evt.startStr.split('T')[0] : '';
 
-                    // Optional Details einblenden
                     if (props.startZeit) {
                         document.getElementById('modalEventTime').innerText = props.startZeit + (props.endZeit ? ' - ' + props.endZeit : '');
                         document.getElementById('rowTime').style.display = 'flex';
@@ -299,57 +303,63 @@
             });
             calendar.render();
 
-            // 4. Submit-Handler 1: Teilnahme an Event
-            document.getElementById('participateForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const title = document.getElementById('partEventTitle').value;
-                const date = document.getElementById('partEventDate').value;
-                const name = document.getElementById('partName').value;
-                const email = document.getElementById('partEmail').value;
-                const count = parseInt(document.getElementById('partCount').value) || 1;
-                const notes = document.getElementById('partNotes').value;
+            // 4. Formular 1: Teilnahme
+            const partForm = document.getElementById('participateForm');
+            if (partForm) {
+                partForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const title = document.getElementById('partEventTitle').value;
+                    const date = document.getElementById('partEventDate').value;
+                    const name = document.getElementById('partName').value;
+                    const email = document.getElementById('partEmail').value;
+                    const count = parseInt(document.getElementById('partCount').value) || 1;
+                    const notes = document.getElementById('partNotes').value;
 
-                const { error } = await supabaseClient.from('event_bookings').insert([{
-                    event_name: `[Teilnahme] ${title} (${date})`,
-                    applicant_name: name,
-                    email: email,
-                    count: count,
-                    notes: notes,
-                    status: 'pending'
-                }]);
+                    const { error } = await supabaseClient.from('event_bookings').insert([{
+                        event_name: `[Teilnahme] ${title} (${date})`,
+                        applicant_name: name,
+                        email: email,
+                        count: count,
+                        notes: notes,
+                        status: 'pending'
+                    }]);
 
-                if (!error) {
-                    alert('Deine Teilnahme wurde erfolgreich angemeldet!');
-                    closeModals();
-                    this.reset();
-                } else { alert('Fehler: ' + error.message); }
-            });
+                    if (!error) {
+                        alert('Deine Teilnahme wurde erfolgreich angemeldet!');
+                        closeModals();
+                        partForm.reset();
+                    } else { alert('Fehler: ' + error.message); }
+                });
+            }
 
-            // 5. Submit-Handler 2: Veranstalter Buchungsanfrage
-            document.getElementById('organizerForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const title = document.getElementById('reqTitle').value;
-                const date = document.getElementById('reqDateValue').value;
-                const name = document.getElementById('reqName').value;
-                const email = document.getElementById('reqEmail').value;
-                const count = parseInt(document.getElementById('reqCount').value) || 1;
-                const notes = document.getElementById('reqNotes').value;
+            // 5. Formular 2: Veranstalter
+            const orgForm = document.getElementById('organizerForm');
+            if (orgForm) {
+                orgForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const title = document.getElementById('reqTitle').value;
+                    const date = document.getElementById('reqDateValue').value;
+                    const name = document.getElementById('reqName').value;
+                    const email = document.getElementById('reqEmail').value;
+                    const count = parseInt(document.getElementById('reqCount').value) || 1;
+                    const notes = document.getElementById('reqNotes').value;
 
-                const { error } = await supabaseClient.from('event_bookings').insert([{
-                    event_name: `[Veranstalter-Anfrage] ${title} (Datum: ${date})`,
-                    applicant_name: name,
-                    email: email,
-                    count: count,
-                    notes: notes,
-                    status: 'pending'
-                }]);
+                    const { error } = await supabaseClient.from('event_bookings').insert([{
+                        event_name: `[Veranstalter-Anfrage] ${title} (Datum: ${date})`,
+                        applicant_name: name,
+                        email: email,
+                        count: count,
+                        notes: notes,
+                        status: 'pending'
+                    }]);
 
-                if (!error) {
-                    alert('Deine Veranstalter-Buchungsanfrage wurde erfolgreich übermittelt!');
-                    closeModals();
-                    this.reset();
-                } else { alert('Fehler: ' + error.message); }
-            });
+                    if (!error) {
+                        alert('Deine Veranstalter-Buchungsanfrage wurde erfolgreich übermittelt!');
+                        closeModals();
+                        orgForm.reset();
+                    } else { alert('Fehler: ' + error.message); }
+                });
+            }
         });
     </script>
 </body>
