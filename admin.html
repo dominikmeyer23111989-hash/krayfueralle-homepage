@@ -37,7 +37,7 @@
         input[type="email"], input[type="password"], input[type="text"], textarea {
             width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; font-family: inherit; background: #fff;
         }
-        textarea { resize: vertical; min-height: 150px; }
+        textarea { resize: vertical; min-height: 100px; }
         
         .btn { padding: 0.85rem 1.75rem; border-radius: 10px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s ease; border: none; cursor: pointer; font-size: 1rem; width: 100%; }
         .btn-primary { background: var(--primary-color); color: #ffffff; }
@@ -120,7 +120,7 @@
                     </div>
                     <div class="form-group">
                         <label for="newsContent">Inhalt / Text</label>
-                        <textarea id="newsContent" required placeholder="Schreibe hier deinen Bericht..."></textarea>
+                        <textarea id="newsContent" required placeholder="Schreibe hier deinen Bericht..." style="min-height: 150px;"></textarea>
                     </div>
                     <button type="submit" id="submitBtn" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Beitrag veröffentlichen</button>
                 </form>
@@ -137,23 +137,43 @@
                 </div>
             </div>
 
-            <!-- Impressum bearbeiten -->
+            <!-- Strukturiertes Impressum bearbeiten -->
             <div class="card">
                 <h2><i class="fa-solid fa-building-columns" style="color: var(--primary-color);"></i> Impressum bearbeiten</h2>
-                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Passe hier die Vereinsdaten für das Impressum an. Änderungen sind sofort auf der Website sichtbar.</p>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Passe hier die strukturierten Impressums-Daten an. Die Änderungen sind sofort auf der Website aktiv.</p>
                 
                 <div id="impressumAlert" class="alert hidden"></div>
 
                 <form id="impressumForm">
                     <div class="form-group">
-                        <label for="impressumTitle">Seiten-Titel</label>
-                        <input type="text" id="impressumTitle" required>
+                        <label for="impTitel">Seiten-Titel</label>
+                        <input type="text" id="impTitel" required value="Impressum">
                     </div>
                     <div class="form-group">
-                        <label for="impressumContent">Impressum Text</label>
-                        <textarea id="impressumContent" required style="min-height: 250px;"></textarea>
+                        <label for="impAllgemein">Allgemein (Name, Anschrift, Register etc.)</label>
+                        <textarea id="impAllgemein" required></textarea>
                     </div>
-                    <button type="submit" id="impressumBtn" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Impressum aktualisieren</button>
+                    <div class="form-group">
+                        <label for="impKontakt">Kontakt (E-Mail, Telefon)</label>
+                        <textarea id="impKontakt" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="impMstv">Verantwortlicher i.S.d. § 18 Abs. 2 MStV</label>
+                        <textarea id="impMstv" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="impRedaktion">Redaktion</label>
+                        <textarea id="impRedaktion" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="impTechnik">Technische Betreuung</label>
+                        <textarea id="impTechnik" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="impSchlichtung">Verbraucherschlichtung / Hinweis</label>
+                        <textarea id="impSchlichtung" required></textarea>
+                    </div>
+                    <button type="submit" id="impressumBtn" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Impressum speichern</button>
                 </form>
             </div>
 
@@ -169,7 +189,7 @@
     
     <script>
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzTSwImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
         
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -292,7 +312,7 @@
             }
         };
 
-        // Impressum in den Admin-Feldern laden
+        // Impressum in den Admin-Feldern laden (aus JSON)
         async function loadImpressumAdmin() {
             try {
                 const { data, error } = await supabaseClient
@@ -302,13 +322,20 @@
                     .single();
 
                 if (data) {
-                    document.getElementById('impressumTitle').value = data.titel;
-                    document.getElementById('impressumContent').value = data.inhalt;
+                    document.getElementById('impTitel').value = data.titel || 'Impressum';
+                    if (data.daten) {
+                        document.getElementById('impAllgemein').value = data.daten.allgemein || '';
+                        document.getElementById('impKontakt').value = data.daten.kontakt || '';
+                        document.getElementById('impMstv').value = data.daten.mstv || '';
+                        document.getElementById('impRedaktion').value = data.daten.redaktion || '';
+                        document.getElementById('impTechnik').value = data.daten.technik || '';
+                        document.getElementById('impSchlichtung').value = data.daten.schlichtung || '';
+                    }
                 }
             } catch (err) { console.log(err); }
         }
 
-        // Impressum abspeichern
+        // Impressum abspeichern (als JSON)
         document.getElementById('impressumForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('impressumBtn');
@@ -318,13 +345,20 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Speichere...';
             alertBox.classList.add('hidden');
 
-            const title = document.getElementById('impressumTitle').value;
-            const content = document.getElementById('impressumContent').value;
+            const titel = document.getElementById('impTitel').value;
+            const datenObj = {
+                allgemein: document.getElementById('impAllgemein').value,
+                kontakt: document.getElementById('impKontakt').value,
+                mstv: document.getElementById('impMstv').value,
+                redaktion: document.getElementById('impRedaktion').value,
+                technik: document.getElementById('impTechnik').value,
+                schlichtung: document.getElementById('impSchlichtung').value
+            };
 
             try {
                 const { error } = await supabaseClient
                     .from('site_content')
-                    .update({ titel: title, inhalt: content, updated_at: new Date() })
+                    .update({ titel: titel, daten: datenObj, updated_at: new Date() })
                     .eq('id', 'impressum');
 
                 if (error) throw error;
@@ -338,7 +372,7 @@
                 alertBox.classList.remove('hidden');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Impressum aktualisieren';
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Impressum speichern';
             }
         });
 
@@ -354,51 +388,4 @@
             const content = document.getElementById('newsContent').value;
             const imageFile = document.getElementById('newsImage').files[0];
 
-            let imageUrl = '';
-
-            try {
-                if (imageFile) {
-                    const fileExt = imageFile.name.split('.').pop();
-                    const fileName = `${Date.now()}.${fileExt}`;
-                    const filePath = `${fileName}`;
-
-                    const { error: uploadError } = await supabaseClient.storage
-                        .from('news-images')
-                        .upload(filePath, imageFile);
-
-                    if (uploadError) throw uploadError;
-
-                    const { data: publicURLData } = supabaseClient.storage
-                        .from('news-images')
-                        .getPublicUrl(filePath);
-
-                    imageUrl = publicURLData.publicUrl;
-                }
-
-                const { error: insertError } = await supabaseClient
-                    .from('aktuelles')
-                    .insert([
-                        { titel: title, inhalt: content, autor: author, bild_url: imageUrl }
-                    ]);
-
-                if (insertError) throw insertError;
-
-                formAlert.textContent = 'Beitrag erfolgreich veröffentlicht!';
-                formAlert.className = 'alert alert-success';
-                formAlert.classList.remove('hidden');
-                newsForm.reset();
-
-                loadManageNews();
-
-            } catch (err) {
-                formAlert.textContent = 'Fehler beim Veröffentlichen: ' + err.message;
-                formAlert.className = 'alert alert-error';
-                formAlert.classList.remove('hidden');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Beitrag veröffentlichen';
-            }
-        });
-    </script>
-</body>
-</html>
+            let imageUrl
