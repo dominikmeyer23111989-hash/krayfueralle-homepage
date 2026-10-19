@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events & Aktionen – KrayFürAlle e.V.</title>
+    <!-- Favicon Platzhalter (verhindert den 404 Fehler, falls kein Favicon da ist) -->
+    <link rel="icon" href="data:,">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FontAwesome mit crossorigin Attribut, um Tracking-Blockaden zu minimieren -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; margin: 0; }
         .container { max-width: 900px; margin: 3rem auto; padding: 0 1.5rem; }
@@ -22,7 +27,7 @@
         <h1 style="font-size: 2.2rem; color: #0f172a; margin-bottom: 0.5rem;">Aktionen & Veranstaltungskalender</h1>
         <p style="color: #64748b; margin-bottom: 2rem;">Hier findest du alle Termine in Kray. Buche deinen Platz direkt online!</p>
 
-        <!-- Das Buchungsformular direkt eingebettet & barrierefrei -->
+        <!-- Das Buchungsformular direkt eingebettet -->
         <div class="card" id="event-booking-module" style="background: #ffffff; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;">
             <h3 style="font-size: 1.5rem; color: #0f172a; margin-bottom: 0.5rem;">
                 <i class="fa-solid fa-calendar-check" style="color: #2563eb; margin-right: 0.5rem;"></i>
@@ -76,10 +81,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/include.js"></script>
 
-    <!-- Formular-Handler mit Log & Fehlermeldungen -->
+    <!-- Supabase Formular-Übertragung -->
     <script>
-        console.log("Skript geladen!");
-
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -122,8 +125,6 @@
                     alert('Ein unerwarteter Fehler ist aufgetreten.');
                 }
             });
-        } else {
-            console.error("Formular 'eventBookingForm' wurde im DOM nicht gefunden.");
         }
     </script>
 </body>
