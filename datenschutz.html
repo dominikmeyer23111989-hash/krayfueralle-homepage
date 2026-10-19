@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datenschutzerklärung – KrayFürAlle e.V.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: #334155; margin: 0; padding: 0; line-height: 1.7; }
+
+        .container { max-width: 800px; margin: 3rem auto; padding: 0 1.5rem; }
+        
+        .card { background: var(--card-bg); border-radius: 16px; padding: 2.5rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05); }
+        
+        h1 { color: var(--text-main); font-weight: 700; font-size: 2rem; margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+        h2 { color: var(--text-main); font-weight: 600; font-size: 1.25rem; margin-top: 1.75rem; margin-bottom: 0.5rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.3rem; }
+        
+        p { margin-top: 0; margin-bottom: 1rem; white-space: pre-line; }
+
+        .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-muted); text-decoration: none; font-weight: 500; margin-top: 2rem; transition: color 0.2s; }
+        .back-link:hover { color: var(--primary-color); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card">
+            <h1 id="dsTitel"><i class="fa-solid fa-user-shield" style="color: var(--primary-color);"></i> Datenschutzerklärung</h1>
+            
+            <div id="dsContent">
+                <p style="color: var(--text-muted);">Lade Datenschutzerklärung...</p>
+            </div>
+
+            <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Zurück zur Startseite</a>
+        </div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function loadDatenschutz() {
+            const contentDiv = document.getElementById('dsContent');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('site_content')
+                    .select('*')
+                    .eq('id', 'datenschutz')
+                    .single();
+
+                if (error || !data) {
+                    contentDiv.innerHTML = `<p style="color: #991b1b;">Datenschutzerklärung konnte nicht geladen werden.</p>`;
+                    return;
+                }
+
+                if (data.titel) {
+                    document.getElementById('dsTitel').innerHTML = `<i class="fa-solid fa-user-shield" style="color: var(--primary-color);"></i> ${data.titel}`;
+                }
+
+                const d = data.daten || {};
+                
+                contentDiv.innerHTML = `
+                    <h2>1. Verantwortlicher</h2>
+                    <p>${d.verantwortlicher || 'Angaben folgen.'}</p>
+
+                    <h2>2. Datenerfassung & Server-Logfiles</h2>
+                    <p>${d.erhebung || 'Angaben folgen.'}</p>
+
+                    <h2>3. Cookies & Analyse-Tools</h2>
+                    <p>${d.cookies || 'Angaben folgen.'}</p>
+
+                    <h2>4. Ihre Rechte</h2>
+                    <p>${d.rechte || 'Angaben folgen.'}</p>
+
+                    <h2>5. Ansprechpartner / Kontakt</h2>
+                    <p>${d.kontakt || 'Angaben folgen.'}</p>
+                `;
+
+            } catch (err) {
+                contentDiv.innerHTML = `<p style="color: #991b1b;">Fehler beim Laden des Inhalts.</p>`;
+            }
+        }
+
+        loadDatenschutz();
+    </script>
+</body>
+</html>
