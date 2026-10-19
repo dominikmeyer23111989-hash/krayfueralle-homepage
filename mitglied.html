@@ -38,7 +38,7 @@
         .page-title { font-size: 2.5rem; font-weight: 800; margin: 0 0 0.5rem 0; }
         .page-subtitle { font-size: 1.15rem; color: #cbd5e1; max-width: 650px; margin: 0 auto; }
 
-        /* Content Card / Form Container */
+        /* Content Card */
         .content-card {
             background: var(--card-bg);
             border-radius: 16px;
@@ -49,10 +49,10 @@
             position: relative;
         }
 
-        /* Beitragsübersicht Boxen */
+        /* Beitragsübersicht */
         .rates-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2.5rem;
         }
@@ -65,61 +65,35 @@
         }
         .rate-title { font-weight: 600; color: var(--text-muted); font-size: 0.95rem; margin-bottom: 0.5rem; }
         .rate-amount { font-size: 1.8rem; font-weight: 800; color: var(--primary-color); }
+        .rate-on-request { font-size: 1.3rem; font-weight: 700; color: var(--secondary-color); }
 
-        /* Formular Styling */
-        .form-group { margin-bottom: 1.5rem; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        label { display: block; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; font-size: 0.95rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.85rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: 'Inter', sans-serif;
-            background: #f8fafc;
-            color: var(--text-main);
-            transition: all 0.2s;
+        /* Download Box für PDF */
+        .download-box {
+            background: #eff6ff;
+            border: 2px dashed #bfdbfe;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2.5rem;
         }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .btn-submit {
+        .download-box h3 { margin-top: 0; color: var(--text-main); font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .download-box p { color: var(--text-muted); margin-bottom: 1.5rem; }
+        
+        .btn-download {
             background: var(--primary-color);
             color: #ffffff;
-            width: 100%;
-            padding: 1rem;
-            border: none;
+            padding: 0.85rem 2rem;
             border-radius: 10px;
             font-weight: 700;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.2s;
-            display: flex;
+            text-decoration: none;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 0.5rem;
+            transition: all 0.2s;
         }
-        .btn-submit:hover { background: var(--primary-hover); transform: translateY(-2px); }
-
-        /* Erfolgs-Hinweis */
-        .success-box {
-            display: none;
-            background: #ecfdf5;
-            border: 1px solid #10b981;
-            color: #065f46;
-            padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            margin-top: 1.5rem;
-        }
+        .btn-download:hover { background: var(--primary-hover); transform: translateY(-2px); }
 
         @media (max-width: 768px) {
-            .form-row { grid-template-columns: 1fr; }
             .content-card { padding: 1.5rem; margin-top: -1.5rem; }
         }
     </style>
@@ -142,66 +116,30 @@
         <div class="content-card">
             
             <h2 style="color: var(--text-main); margin-top: 0; margin-bottom: 1.5rem; font-size: 1.4rem;">
-                <i class="fa-solid fa-file-invoice-dollar" style="color: var(--primary-color); margin-right: 0.5rem;"></i> Unsere Beitragsätze
+                <i class="fa-solid fa-file-invoice-dollar" style="color: var(--primary-color); margin-right: 0.5rem;"></i> Unser Mitgliedsbeitrag
             </h2>
             
-            <!-- Dynamische Beitragsübersicht aus Supabase -->
+            <!-- Dynamische/Gezielte Beitragsanzeige -->
             <div id="ratesContainer" class="rates-grid">
                 <div class="rate-card" style="grid-column: 1 / -1; color: var(--text-muted);">
-                    <i class="fa-solid fa-spinner fa-spin"></i> Lade Beitragsätze...
+                    <i class="fa-solid fa-spinner fa-spin"></i> Lade Beitragssatz...
                 </div>
             </div>
 
             <hr style="border: none; border-top: 1px solid var(--border-color); margin: 2.5rem 0;">
 
-            <h2 style="color: var(--text-main); margin-bottom: 1.5rem; font-size: 1.4rem;">
-                <i class="fa-solid fa-user-plus" style="color: var(--primary-color); margin-right: 0.5rem;"></i> Mitgliedsantrag ausfüllen
-            </h2>
+            <!-- Download-Bereich für den Mitgliedsantrag -->
+            <div class="download-box">
+                <h3><i class="fa-solid fa-file-pdf" style="color: #dc2626; margin-right: 0.4rem;"></i> Mitgliedsantrag als PDF</h3>
+                <p>Lade dir unseren Aufnahmeantrag herunter, fülle ihn bequem am PC oder handschriftlich aus und schicke ihn uns per Mail oder Post zu.</p>
+                <!-- Wichtig: Lade die PDF im Hauptverzeichnis hoch unter dem Namen mitgliedsantrag.pdf -->
+                <a href="mitgliedsantrag.pdf" target="_blank" class="btn-download">
+                    <i class="fa-solid fa-download"></i> Antrag herunterladen (PDF)
+                </a>
+            </div>
 
-            <form id="mitgliedForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="vorname">Vorname *</label>
-                        <input type="text" id="vorname" required placeholder="Max">
-                    </div>
-                    <div class="form-group">
-                        <label for="nachname">Nachname *</label>
-                        <input type="text" id="nachname" required placeholder="Mustermann">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="email">E-Mail-Adresse *</label>
-                        <input type="email" id="email" required placeholder="max@beispiel.de">
-                    </div>
-                    <div class="form-group">
-                        <label for="telefon">Telefon / Mobil</label>
-                        <input type="tel" id="telefon" placeholder="0176 / 12345678">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="anschrift">Anschrift (Straße, Hausnummer, PLZ, Ort) *</label>
-                    <textarea id="anschrift" rows="2" required placeholder="Musterstraße 1, 45307 Essen"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="beitragsart">Gewünschte Mitgliedschaft / Beitragsart *</label>
-                    <select id="beitragsart" required>
-                        <Bitte Beitragsart wählen>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn-submit">
-                    <i class="fa-solid fa-paper-plane"></i> Mitgliedsantrag absenden
-                </button>
-            </form>
-
-            <div id="successBox" class="success-box">
-                <i class="fa-solid fa-circle-check" style="font-size: 2rem; color: #10b981; margin-bottom: 0.5rem; display: block;"></i>
-                <strong>Vielen Dank für deinen Antrag!</strong>
-                <p style="margin: 0.5rem 0 0 0; color: #047857;">Dein Mitgliedsantrag wurde erfolgreich übermittelt und wird im System verarbeitet.</p>
+            <div style="text-align: center; color: var(--text-muted); font-size: 0.95rem;">
+                <p>Bei Fragen zur Mitgliedschaft oder zu Familien- und Kindertarifen melde dich gerne über unser <a href="contact.html" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Kontaktformular</a>.</p>
             </div>
 
         </div>
@@ -214,7 +152,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/include.js"></script>
 
-    <!-- Skript zum Laden der Beiträge & Absenden des Formulars -->
+    <!-- Skript zum gefilterten Laden des regulären Beitrags -->
     <script>
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
@@ -223,69 +161,53 @@
 
         document.addEventListener('DOMContentLoaded', async function() {
             const ratesContainer = document.getElementById('ratesContainer');
-            const selectDropdown = document.getElementById('beitragsart');
 
             try {
-                // Beitragsätze aus Supabase Tabelle 'beitragssaetze' laden
                 const { data: raten, error } = await supabaseClient.from('beitragssaetze').select('*');
                 
                 if (error) throw error;
 
                 if (raten && raten.length > 0) {
                     let ratesHtml = '';
-                    let selectHtml = '<option value="">-- Bitte auswählen --</option>';
 
-                    raten.forEach(item => {
-                        const formattedBetrag = parseFloat(item.betrag).toFixed(2).replace('.', ',') + ' €';
-                        
-                        // Karten für die Übersicht oben
+                    // Wir suchen gezielt nach dem Standard-Mitgliedsbeitrag
+                    const standardRate = raten.find(r => r.typ.toLowerCase().includes('mitglied') && !r.typ.toLowerCase().includes('familie') && !r.typ.toLowerCase().includes('kind'));
+
+                    if (standardRate) {
+                        const formattedBetrag = parseFloat(standardRate.betrag).toFixed(2).replace('.', ',') + ' €';
                         ratesHtml += `
                             <div class="rate-card">
-                                <div class="rate-title">${item.typ}</div>
+                                <div class="rate-title">Reguläre Mitgliedschaft</div>
                                 <div class="rate-amount">${formattedBetrag} <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted);">/ Monat</span></div>
                             </div>
                         `;
+                    }
 
-                        // Optionen für das Dropdown-Formular
-                        selectHtml += `<option value="${item.typ}">${item.typ} (${formattedBetrag} mtl.)</option>`;
-                    });
+                    // Familien- und Kindertarife fest als "Auf Anfrage" anzeigen
+                    ratesHtml += `
+                        <div class="rate-card">
+                            <div class="rate-title">Familien- & Kindertarif</div>
+                            <div class="rate-on-request"><i class="fa-solid fa-circle-question"></i> Auf Anfrage</div>
+                        </div>
+                    `;
 
                     ratesContainer.innerHTML = ratesHtml;
-                    selectDropdown.innerHTML = selectHtml;
                 } else {
-                    ratesContainer.innerHTML = '<div class="rate-card" style="grid-column: 1 / -1;">Derzeit sind keine Beitragsätze hinterlegt.</div>';
+                    ratesContainer.innerHTML = '<div class="rate-card" style="grid-column: 1 / -1;">Derzeit sind keine Beiträge hinterlegt.</div>';
                 }
             } catch (err) {
-                console.error('Fehler beim Laden der Beitragsätze:', err);
-                ratesContainer.innerHTML = '<div class="rate-card" style="grid-column: 1 / -1; color: #dc2626;">Fehler beim Laden der Beitragsätze.</div>';
+                console.error('Fehler beim Laden:', err);
+                ratesContainer.innerHTML = `
+                    <div class="rate-card">
+                        <div class="rate-title">Reguläre Mitgliedschaft</div>
+                        <div class="rate-amount">5,00 € <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted);">/ Monat</span></div>
+                    </div>
+                    <div class="rate-card">
+                        <div class="rate-title">Familien- & Kindertarif</div>
+                        <div class="rate-on-request"><i class="fa-solid fa-circle-question"></i> Auf Anfrage</div>
+                    </div>
+                `;
             }
-
-            // Formular-Absende-Logik (kann später mit einer Supabase-Tabelle wie 'mitglieder' verknüpft werden)
-            const form = document.getElementById('mitgliedForm');
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-
-                const formData = {
-                    vorname: document.getElementById('vorname').value,
-                    nachname: document.getElementById('nachname').value,
-                    email: document.getElementById('email').value,
-                    telefon: document.getElementById('telefon').value,
-                    anschrift: document.getElementById('anschrift').value,
-                    beitragsart: document.getElementById('beitragsart').value,
-                    status: 'neu'
-                };
-
-                try {
-                    // Beispiel: Hier kannst du später direkt in eine Tabelle (z.B. 'mitglieder_antraege') speichern:
-                    // const { error } = await supabaseClient.from('mitglieder_antraege').insert([formData]);
-                    // if (error) throw error;
-
-                    form.style.display = 'none';
-                    document.getElementById('successBox').style.display = 'block';
-                } catch (err) {
-                    alert('Fehler beim Absenden des Antrags: ' + err.message);
-                }
-            });
         });
     </script>
 </body>
