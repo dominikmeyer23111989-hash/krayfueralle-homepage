@@ -77,21 +77,32 @@
     <!-- Footer-Modul -->
     <div data-include="components/footer.html"></div>
 
-    <!-- Supabase SDK & Include Modul-Lader -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/include.js"></script>
+ <!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/include.js"></script>
 
-    <!-- Supabase Formular-Übertragung -->
-    <script>
+<!-- Robuster Supabase Formular-Handler -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        console.log("DOM komplett geladen, initialisiere Supabase...");
+
+        // Prüfen, ob das Supabase-Objekt verfügbar ist
+        const supabaseLib = window.supabase || supabase;
+        if (!supabaseLib) {
+            console.error("Supabase SDK konnte nicht geladen werden!");
+            return;
+        }
+
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const supabaseClient = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const bookingForm = document.getElementById('eventBookingForm');
         if (bookingForm) {
             bookingForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                console.log("Formular wird an Supabase gesendet...");
+                console.log("Absenden-Button geklickt, übertrage Daten...");
 
                 const eventName = document.getElementById('eventSelect').value;
                 const applicantName = document.getElementById('userName').value;
@@ -114,18 +125,19 @@
                         ]);
 
                     if (error) {
-                        console.error("Supabase Fehler:", error);
-                        alert('Fehler beim Senden: ' + error.message);
+                        console.error("Supabase Fehlerdetails:", error);
+                        alert('Supabase-Fehler: ' + error.message);
                     } else {
-                        alert('Deine Teilnahme-Anfrage wurde erfolgreich abgesendet!');
+                        alert('Deine Teilnahme-Anfrage wurde erfolgreich in Supabase gespeichert!');
                         bookingForm.reset();
                     }
                 } catch (err) {
-                    console.error("Catch Fehler:", err);
-                    alert('Ein unerwarteter Fehler ist aufgetreten.');
+                    console.error("Unerwarteter Catch-Fehler:", err);
+                    alert('Ein unerwarteter Fehler ist aufgetreten: ' + err.message);
                 }
             });
+        } else {
+            console.error("Formular 'eventBookingForm' wurde im DOM nicht gefunden.");
         }
-    </script>
-</body>
-</html>
+    });
+</script>
