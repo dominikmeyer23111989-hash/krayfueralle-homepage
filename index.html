@@ -86,6 +86,16 @@
         .membership-banner { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; border-radius: 20px; padding: 3.5rem 2rem; text-align: center; margin: 3rem 0; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.3); }
         .membership-banner h2 { font-size: 2.2rem; margin-top: 0; margin-bottom: 1rem; color: #ffffff; font-weight: 800; }
         .membership-banner p { max-width: 650px; margin: 0 auto 2rem auto; color: #e0e7ff; font-size: 1.15rem; line-height: 1.6; }
+
+        /* Platzhalter-Box Styling */
+        .placeholder-box {
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
@@ -109,29 +119,17 @@
     <!-- Main Content -->
     <main class="container">
         
-        <!-- Schwerpunkte / Angebote -->
+        <!-- Schwerpunkte / Angebote (Platzhalter bis zur Vorstandsklärung) -->
         <section class="section">
             <div class="section-header">
                 <h2 class="section-title">Was wir bieten</h2>
-                <p class="section-subtitle">Unser Verein steht für Vielfalt, Begegnung und Unterstützung vor Ort.</p>
+                <p class="section-subtitle">Informationen zu unseren Projekten und Vereinsangeboten folgen in Kürze.</p>
             </div>
 
-            <div class="grid-3">
-                <div class="card">
-                    <div class="card-icon"><i class="fa-solid fa-users"></i></div>
-                    <h3 class="card-title">Stadtteil & Begegnung</h3>
-                    <p class="card-text">Regelmäßige Treffen, Workshops und Aktionen für Groß und Klein bringen die Menschen in Kray näher zusammen.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon" style="background: #ccfbf1; color: var(--secondary-color);"><i class="fa-solid fa-house-user"></i></div>
-                    <h3 class="card-title">Räume & Raumnutzung</h3>
-                    <p class="card-text">Ob Workshops, Kurse oder Vereins-Events: Über unseren Belegungsplan können Räumlichkeiten angefragt werden.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon" style="background: #fef3c7; color: #d97706;"><i class="fa-solid fa-hand-holding-heart"></i></div>
-                    <h3 class="card-title">Initiativen unterstützen</h3>
-                    <p class="card-text">Du hast eine eigene Idee für Kray? Wir unterstützen dich bei der Umsetzung und vernetzen dich im Stadtteil.</p>
-                </div>
+            <div class="placeholder-box">
+                <i class="fa-solid fa-square-plus" style="font-size: 2.5rem; color: #94a3b8; margin-bottom: 1rem; display: block;"></i>
+                <h3 style="margin: 0 0 0.5rem 0; color: var(--text-main);">Angebote & Initiativen in Vorbereitung</h3>
+                <p style="margin: 0; max-width: 550px; margin: 0 auto;">Hier werden in Kürze die konkreten Schwerpunkte und Angebote unseres Vereins präsentiert.</p>
             </div>
         </section>
 
@@ -150,11 +148,11 @@
             </div>
 
             <div style="text-align: center; margin-top: 2.5rem;">
-                <a href="events.html" class="btn btn-primary"><i class="fa-solid fa-calendar-days"></i> Zum vollständigen Belegungsplan & Kalender</a>
+                <a href="events.html" class="btn btn-primary"><i class="fa-solid fa-calendar-days"></i> Zum vollständigen Kalender</a>
             </div>
         </section>
 
-        <!-- ABLÖSUNG: Neue, prägnante Mitglied werden Sektion -->
+        <!-- Mitglied werden Banner -->
         <section class="membership-banner">
             <h2><i class="fa-solid fa-heart-circle-plus"></i> Werde Teil von KrayFürAlle e.V.</h2>
             <p>Gemeinschaft lebt vom Mitmachen! Unterstütze unseren Verein als Mitglied, bringe deine eigenen Ideen ein und gestalte Essen-Kray aktiv mit.</p>
@@ -163,12 +161,12 @@
             </a>
         </section>
 
-        <!-- CTA Raumbuchung -->
+        <!-- CTA Termin / Aktion anfragen -->
         <section class="cta-banner">
-            <h2>Du möchtest eine Veranstaltung planen?</h2>
-            <p>Nutze unseren interaktiven Kalender, um freie Termine einzusehen und direkt eine Buchungsanfrage einzureichen.</p>
+            <h2>Du möchtest eine Aktion oder ein Treffen planen?</h2>
+            <p>Nutze unseren interaktiven Kalender, um anstehende Termine einzusehen und direkt eine Anfrage einzureichen.</p>
             <a href="events.html" class="btn btn-primary">
-                <i class="fa-solid fa-paper-plane"></i> Jetzt Raum-Anfrage stellen
+                <i class="fa-solid fa-paper-plane"></i> Jetzt Termin anfragen
             </a>
         </section>
 
