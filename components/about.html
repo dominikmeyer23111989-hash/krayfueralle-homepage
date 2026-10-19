@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Über uns – KrayFürAlle e.V.</title>
+    <link rel="icon" href="data:,">
+    
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary-color: #0d9488;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: #334155; margin: 0; padding: 0; line-height: 1.7; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+
+        /* Header / Hero Section */
+        .page-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #ffffff;
+            padding: 4rem 1.5rem;
+            text-align: center;
+            border-bottom: 4px solid var(--primary-color);
+        }
+        .page-title { font-size: 2.5rem; font-weight: 800; margin: 0 0 0.5rem 0; }
+        .page-subtitle { font-size: 1.15rem; color: #cbd5e1; max-width: 650px; margin: 0 auto; }
+
+        /* Content Card */
+        .content-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 3rem 2.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            margin: -3rem auto 3rem auto;
+            position: relative;
+        }
+
+        h2 { font-size: 1.5rem; color: var(--text-main); margin-top: 2.5rem; margin-bottom: 1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+        h2 i { color: var(--primary-color); }
+        h2:first-of-type { margin-top: 0; }
+        
+        p { color: #475569; font-size: 1.05rem; margin-bottom: 1.25rem; }
+
+        .highlight-box {
+            background: #f8fafc;
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            border-radius: 0 12px 12px 0;
+            margin: 2rem 0;
+            font-style: italic;
+            color: var(--text-main);
+        }
+
+        /* CTA Banner am Ende */
+        .cta-section {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin: 3rem 0;
+        }
+        .cta-section h3 { font-size: 1.8rem; margin-top: 0; margin-bottom: 1rem; }
+        .cta-section p { color: #e0e7ff; max-width: 600px; margin: 0 auto 2rem auto; font-size: 1.05rem; }
+        
+        .btn { padding: 0.85rem 1.75rem; border-radius: 10px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease; border: none; cursor: pointer; font-size: 1rem; background: #ffffff; color: var(--primary-color); }
+        .btn:hover { background: #f1f5f9; transform: translateY(-2px); }
+
+        @media (max-width: 768px) {
+            .content-card { padding: 1.5rem; margin-top: -1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Nav Modul -->
+    <div data-include="components/navbar.html"></div>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <div class="container">
+            <h1 class="page-title">Über uns</h1>
+            <p class="page-subtitle">Gemeinsam für unseren Stadtteil. Gemeinsam für die Menschen.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="content-card">
+            
+            <p style="font-size: 1.15rem; font-weight: 500; color: var(--text-main);">
+                Kray ist unser Zuhause. Die Menschen sind das Herz unseres Stadtteils. Und Gemeinschaft ist das, was uns verbindet[cite: 2].
+            </p>
+
+            <p>
+                Wir von <strong>Kray für alle e. V.</strong> glauben daran, dass ein lebendiger und lebenswerter Stadtteil dort entsteht, wo Menschen füreinander da sind, sich begegnen und gemeinsam etwas bewegen. Genau dafür setzen wir uns ein – mit Herz, Engagement und der Überzeugung, dass wir zusammen mehr erreichen können[cite: 2].
+            </p>
+
+            <h2><i class="fa-solid fa-users-rectangle"></i> Ein Verein für alle Menschen in Kray</h2>
+            <p>
+                Kray ist vielfältig. Hier leben Menschen mit unterschiedlichen Geschichten, Erfahrungen, Kulturen und Vorstellungen. Was uns verbindet, ist der Wunsch nach einem Stadtteil, in dem man sich wohlfühlt, willkommen ist und Teil einer Gemeinschaft sein kann[cite: 2].
+            </p>
+            <p>
+                Wir möchten Menschen zusammenbringen, Begegnungen schaffen und das Miteinander in unserem Stadtteil stärken. Dabei zählen für uns nicht Herkunft, Alter oder Lebenssituation, sondern der Mensch selbst[cite: 2].
+            </p>
+            <p>
+                Denn wir sind überzeugt: Jeder Mensch kann etwas beitragen. Jede Idee verdient es, gehört zu werden. Und jeder Beitrag – ob groß oder klein – kann einen Unterschied machen[cite: 2].
+            </p>
+
+            <h2><i class="fa-solid fa-hands-bound"></i> Gemeinsam anpacken. Gemeinsam etwas verändern.</h2>
+            <p>
+                Ein gutes Miteinander entsteht nicht von allein. Es braucht Menschen, die sich engagieren, Verantwortung übernehmen und bereit sind, neue Wege zu gehen[cite: 2].
+            </p>
+            <p>
+                Deshalb möchten wir die Gemeinschaft in Kray stärken, den Austausch zwischen den Menschen fördern und dazu beitragen, dass aus Nachbarn eine Gemeinschaft wird[cite: 2]. Wir möchten zuhören, Ideen aufgreifen, Menschen miteinander vernetzen und gemeinsam Impulse für einen Stadtteil setzen, in dem man gerne lebt[cite: 2].
+            </p>
+
+            <div class="highlight-box">
+                "Kray für alle e. V. – Weil unser Stadtteil mehr ist als ein Ort. Er ist Gemeinschaft."[cite: 3]
+            </div>
+
+            <h2><i class="fa-solid fa-bullseye"></i> Unsere Vision: Ein Kray, in dem alle dazugehören</h2>
+            <p>
+                Wir wünschen uns ein Kray, in dem Menschen füreinander einstehen, Vielfalt als Bereicherung erleben und Zusammenhalt im Alltag spürbar wird[cite: 2]. Ein Stadtteil, in dem Begegnungen Brücken bauen, gegenseitiger Respekt selbstverständlich ist und niemand das Gefühl haben muss, allein zu sein[cite: 2].
+            </p>
+            <p>
+                Dieses Ziel können wir nicht allein erreichen. Es lebt von Menschen, die mitmachen, ihre Ideen einbringen und bereit sind, gemeinsam etwas zu bewegen[cite: 3].
+            </p>
+
+            <!-- CTA innerhalb der Seite -->
+            <div class="cta-section">
+                <h3>Mach mit – denn Kray geht uns alle an!</h3>
+                <p>Du möchtest deinen Stadtteil aktiv mitgestalten, neue Menschen kennenlernen oder dich für ein gutes Miteinander einsetzen[cite: 3]?</p>
+                <a href="events.html" class="btn">
+                    <img src="data:," style="display:none">
+                    <i class="fa-solid fa-calendar-days" style="color: var(--primary-color);"></i> Zum Kalender & Kontakt
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer Modul -->
+    <div data-include="components/footer.html"></div>
+
+    <!-- Navigation Include -->
+    <script src="js/include.js"></script>
+</body>
+</html>
