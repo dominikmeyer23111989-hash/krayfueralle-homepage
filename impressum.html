@@ -14,7 +14,8 @@
         .container { max-width: 800px; margin: 3rem auto; padding: 0 1.5rem; }
         .card { background: var(--card-bg); border-radius: 16px; padding: 2.5rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05); }
         h1 { font-size: 2rem; color: var(--text-main); margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; }
-        .content-box { white-space: pre-line; color: var(--text-main); font-size: 1.05rem; }
+        h3 { color: var(--primary-color); font-size: 1.1rem; margin-top: 1.5rem; margin-bottom: 0.4rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3rem; }
+        .impressum-block { white-space: pre-line; color: var(--text-main); font-size: 0.95rem; margin-bottom: 1rem; }
     </style>
 </head>
 <body>
@@ -24,7 +25,7 @@
     <main class="container">
         <div class="card">
             <h1 id="pageTitle">Impressum</h1>
-            <div id="pageContent" class="content-box">
+            <div id="impressumContainer">
                 <p style="color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Lade Impressum...</p>
             </div>
         </div>
@@ -52,12 +53,22 @@
 
                 if (error) throw error;
 
-                if (data) {
-                    document.getElementById('pageTitle').textContent = data.titel;
-                    document.getElementById('pageContent').textContent = data.inhalt;
+                if (data && data.daten) {
+                    document.getElementById('pageTitle').textContent = data.titel || 'Impressum';
+                    const d = data.daten;
+
+                    let html = '';
+                    if (d.allgemein) html += `<h3>Allgemein</h3><div class="impressum-block">${d.allgemein}</div>`;
+                    if (d.kontakt) html += `<h3>Kontakt</h3><div class="impressum-block">${d.kontakt}</div>`;
+                    if (d.mstv) html += `<h3>Verantwortlicher i.S.d. § 18 Abs. 2 MStV</h3><div class="impressum-block">${d.mstv}</div>`;
+                    if (d.redaktion) html += `<h3>Redaktion</h3><div class="impressum-block">${d.redaktion}</div>`;
+                    if (d.technik) html += `<h3>Technische Betreuung</h3><div class="impressum-block">${d.technik}</div>`;
+                    if (d.schlichtung) html += `<h3>Streitbeilegung / Verbraucherschlichtung</h3><div class="impressum-block">${d.schlichtung}</div>`;
+
+                    document.getElementById('impressumContainer').innerHTML = html;
                 }
             } catch (err) {
-                document.getElementById('pageContent').innerHTML = '<p>Das Impressum konnte im Moment nicht geladen werden.</p>';
+                document.getElementById('impressumContainer').innerHTML = '<p>Das Impressum konnte im Moment nicht geladen werden.</p>';
             }
         });
     </script>
