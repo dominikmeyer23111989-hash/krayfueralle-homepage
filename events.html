@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events & Aktionen – KrayFürAlle e.V.</title>
+    <!-- Favicon Platzhalter (verhindert 404 Fehler) -->
     <link rel="icon" href="data:,">
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -75,15 +76,14 @@
     <!-- Footer-Modul -->
     <div data-include="components/footer.html"></div>
 
-    <!-- Supabase SDK -->
+    <!-- Supabase SDK & Include Modul -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/include.js"></script>
 
-    <!-- Test-Alert -->
+    <!-- Supabase Formular-Übertragung -->
     <script>
-        alert("JAVASCRIPT LÄUFT!");
-
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIxmXyb2xlIjoiYW5vbiIsImlhdCI6MTc4MzUyODM1OCwiZXhwIjoyMDk5MTA0MzU4fQ.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
         
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -92,24 +92,36 @@
             bookingForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
-                const { data, error } = await supabaseClient
-                    .from('event_bookings')
-                    .insert([
-                        { 
-                            event_name: document.getElementById('eventSelect').value,
-                            applicant_name: document.getElementById('userName').value,
-                            email: document.getElementById('userEmail').value,
-                            count: parseInt(document.getElementById('ticketCount').value) || 1,
-                            notes: document.getElementById('userNotes').value,
-                            status: 'pending'
-                        }
-                    ]);
+                const eventName = document.getElementById('eventSelect').value;
+                const applicantName = document.getElementById('userName').value;
+                const email = document.getElementById('userEmail').value;
+                const count = parseInt(document.getElementById('ticketCount').value) || 1;
+                const notes = document.getElementById('userNotes').value;
 
-                if (error) {
-                    alert('Fehler: ' + error.message);
-                } else {
-                    alert('Erfolgreich gespeichert!');
-                    bookingForm.reset();
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('event_bookings')
+                        .insert([
+                            { 
+                                event_name: eventName,
+                                applicant_name: applicantName,
+                                email: email,
+                                count: count,
+                                notes: notes,
+                                status: 'pending'
+                            }
+                        ]);
+
+                    if (error) {
+                        console.error("Supabase Fehler:", error);
+                        alert('Fehler beim Senden: ' + error.message);
+                    } else {
+                        alert('Deine Teilnahme-Anfrage wurde erfolgreich abgesendet!');
+                        bookingForm.reset();
+                    }
+                } catch (err) {
+                    console.error("Catch Fehler:", err);
+                    alert('Ein unerwarteter Fehler ist aufgetreten.');
                 }
             });
         }
