@@ -1,1 +1,147 @@
+<nav class="navbar">
+    <div class="nav-container">
+        <!-- Logo / Vereinsname -->
+        <a href="index.html" class="nav-logo">
+            <i class="fa-solid fa-heart-hands-together logo-icon"></i>
+            <span>Kray<strong>FürAlle</strong> e.V.</span>
+        </a>
 
+        <!-- Mobile Burger Menu Toggle Button -->
+        <button class="nav-toggle" id="navToggle" aria-label="Menü öffnen">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <!-- Navigation Links -->
+        <ul class="nav-menu" id="navMenu">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i> Startseite</a></li>
+            <li class="nav-item"><a href="events.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Kalender & Anfragen</a></li>
+            <li class="nav-item"><a href="about.html" class="nav-link"><i class="fa-solid fa-users"></i> Über uns</a></li>
+            <li class="nav-item"><a href="contact.html" class="nav-link"><i class="fa-solid fa-envelope"></i> Kontakt</a></li>
+            <li class="nav-item nav-btn-item">
+                <a href="events.html" class="btn-nav-primary"><i class="fa-solid fa-paper-plane"></i> Raum buchen</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<style>
+    /* Navbar Haupt-Styling */
+    .navbar {
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+
+    .nav-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0.85rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Logo Styling */
+    .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        text-decoration: none;
+        color: #0f172a;
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+    .nav-logo strong { color: #2563eb; font-weight: 800; }
+    .logo-icon { color: #2563eb; font-size: 1.4rem; }
+
+    /* Menü-Liste */
+    .nav-menu {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .nav-link {
+        text-decoration: none;
+        color: #475569;
+        font-weight: 500;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: color 0.2s;
+    }
+    .nav-link:hover { color: #2563eb; }
+
+    /* Primary CTA Button in Nav */
+    .btn-nav-primary {
+        background: #2563eb;
+        color: #ffffff;
+        padding: 0.55rem 1.1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s;
+    }
+    .btn-nav-primary:hover { background: #1d4ed8; }
+
+    /* Burger Toggle Button (Standard versteckt) */
+    .nav-toggle {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.3rem;
+        color: #0f172a;
+        cursor: pointer;
+        padding: 0.3rem;
+    }
+
+    /* Responsive Design für Mobilgeräte */
+    @media (max-width: 768px) {
+        .nav-toggle { display: block; }
+
+        .nav-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            border-bottom: 1px solid #e2e8f0;
+            gap: 1.2rem;
+            box-sizing: border-box;
+        }
+
+        .nav-menu.active { display: flex; }
+        .nav-btn-item { width: 100%; }
+        .btn-nav-primary { width: 100%; justify-content: center; }
+    }
+</style>
+
+<script>
+    // Burger-Menü Funktionalität für Mobilgeräte
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+
+        if (toggleBtn && navMenu) {
+            toggleBtn.addEventListener('click', function() {
+                navMenu.classList.toggle('active');
+            });
+        }
+    });
+</script>
