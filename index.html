@@ -3,72 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KrayFürAlle e.V. – Gemeinsam für unseren Stadtteil</title>
-    <!-- Google Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>KrayFürAlle e.V. – Gemeinsam für Essen-Kray</title>
+    <link rel="icon" href="data:,">
     
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+
     <style>
         :root {
-            --primary: #0f172a;
-            --accent: #2563eb;
-            --accent-hover: #1d4ed8;
-            --bg-light: #f8fafc;
-            --text-main: #334155;
-            --text-light: #64748b;
-            --white: #ffffff;
-            --radius: 12px;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary-color: #0d9488;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-light); color: var(--text-main); line-height: 1.6; }
-        
-        .container { max-width: 900px; margin: 3rem auto; padding: 0 1.5rem; }
-        
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: #334155; margin: 0; padding: 0; line-height: 1.6; }
+
+        /* Container */
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+        /* Hero Section */
         .hero {
-            background: linear-gradient(135deg, var(--primary) 0%, #1e293b 100%);
-            color: var(--white);
-            padding: 4rem 2rem;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #ffffff;
+            padding: 5rem 1.5rem;
             text-align: center;
+            border-bottom: 4px solid var(--primary-color);
         }
-        
-        .hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .hero p { color: #94a3b8; font-size: 1.1rem; }
+        .hero-title { font-size: 2.8rem; font-weight: 800; margin: 0 0 1rem 0; letter-spacing: -0.02em; }
+        .hero-subtitle { font-size: 1.25rem; color: #94a3b8; max-width: 700px; margin: 0 auto 2rem auto; font-weight: 400; }
+        .hero-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+        /* Buttons */
+        .btn { padding: 0.85rem 1.75rem; border-radius: 10px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease; border: none; cursor: pointer; font-size: 1rem; }
+        .btn-primary { background: var(--primary-color); color: #ffffff; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .btn-outline { background: transparent; color: #ffffff; border: 2px solid #475569; }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: #ffffff; }
+
+        /* Sections */
+        .section { padding: 4rem 0; }
+        .section-header { text-align: center; margin-bottom: 3rem; }
+        .section-title { font-size: 2rem; color: var(--text-main); font-weight: 700; margin-bottom: 0.5rem; }
+        .section-subtitle { color: var(--text-muted); font-size: 1.05rem; }
+
+        /* Grid Layouts */
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+
+        /* Cards */
+        .card { background: var(--card-bg); border-radius: 16px; padding: 2rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 25px -5px rgba(0,0,0,0.08); }
+
+        .card-icon { width: 50px; height: 50px; border-radius: 12px; background: #dbeafe; color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 1.25rem; }
+        .card-title { font-size: 1.3rem; font-weight: 700; color: var(--text-main); margin: 0 0 0.5rem 0; }
+        .card-text { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem; }
+
+        /* Termine Vorschau Cards */
+        .event-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.75rem; text-transform: uppercase; }
+        .event-date { display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color); font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; }
+
+        /* Banner CTA */
+        .cta-banner { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; border-radius: 20px; padding: 3rem 2rem; text-align: center; margin: 2rem 0; }
+        .cta-banner h2 { font-size: 2rem; margin-top: 0; margin-bottom: 1rem; }
+        .cta-banner p { max-width: 600px; margin: 0 auto 2rem auto; opacity: 0.9; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
-    <!-- Hero Bereich -->
+    <!-- Header / Nav Modul -->
+    <div data-include="components/navbar.html"></div>
+
+    <!-- Hero Section -->
     <header class="hero">
-        <h1>Gemeinsam für unseren Stadtteil.</h1>
-        <p>Willkommen bei KrayFürAlle e.V.</p>
+        <div class="container">
+            <h1 class="hero-title">Gemeinsam für Kray</h1>
+            <p class="hero-subtitle">KrayFürAlle e.V. verbindet Nachbarn, fördert Begegnungen und schafft Raum für Kultur, Engagement und Miteinander im Stadtteil.</p>
+            <div class="hero-buttons">
+                <a href="events.html" class="btn btn-primary"><i class="fa-solid fa-calendar-days"></i> Kalender & Anfragen</a>
+                <a href="#about" class="btn btn-outline"><i class="fa-solid fa-heart"></i> Über unseren Verein</a>
+            </div>
+        </div>
     </header>
 
+    <!-- Main Content -->
     <main class="container">
-        <!-- Event-Modul Bereich -->
-        <div id="event-module">
-            <p style="text-align: center; color: #64748b;">Lade Modul...</p>
-        </div>
+        
+        <!-- Schwerpunkte / Angebote -->
+        <section class="section" id="about">
+            <div class="section-header">
+                <h2 class="section-title">Was wir bieten</h2>
+                <p class="section-subtitle">Unser Verein steht für Vielfalt, Begegnung und Unterstützung vor Ort.</p>
+            </div>
+
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-icon"><i class="fa-solid fa-users"></i></div>
+                    <h3 class="card-title">Stadtteil & Begegnung</h3>
+                    <p class="card-text">Regelmäßige Treffen, Workshops und Aktionen für Groß und Klein bringen die Menschen in Kray näher zusammen.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="background: #ccfbf1; color: var(--secondary-color);"><i class="fa-solid fa-house-user"></i></div>
+                    <h3 class="card-title">Räume & Raumnutzung</h3>
+                    <p class="card-text">Ob Workshops, Kurse oder Vereins-Events: Über unseren Belegungsplan können Räumlichkeiten angefragt werden.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="background: #fef3c7; color: #d97706;"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                    <h3 class="card-title">Initiativen unterstützen</h3>
+                    <p class="card-text">Du hast eine eigene Idee für Kray? Wir unterstützen dich bei der Umsetzung und vernetzen dich im Stadtteil.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Termine Vorschau aus Supabase -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">Nächste Veranstaltungen</h2>
+                <p class="section-subtitle">Ein Blick in unseren aktuellen Kalender aus dem Stadtteil.</p>
+            </div>
+
+            <div id="eventsPreviewGrid" class="grid-3">
+                <div class="card" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <p>Lade kommende Termine...</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2.5rem;">
+                <a href="events.html" class="btn btn-primary"><i class="fa-solid fa-calendar-days"></i> Zum vollständigen Belegungsplan & Kalender</a>
+            </div>
+        </section>
+
+        <!-- CTA Raumbuchung / Mitmachen -->
+        <section class="cta-banner">
+            <h2>Du möchtest eine Veranstaltung planen?</h2>
+            <p>Nutze unseren interaktiven Kalender, um freie Termine einzusehen und direkt eine Buchungsanfrage einzureichen.</p>
+            <a href="events.html" class="btn" style="background: #ffffff; color: var(--primary-color); font-weight: 700;">
+                <i class="fa-solid fa-paper-plane"></i> Jetzt Anfrage stellen
+            </a>
+        </section>
+
     </main>
 
-    <!-- Skript zum dynamischen Laden des Event-Moduls -->
-    <script>
-        fetch('components/event-card.html')
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Netzwerk-Antwort war nicht ok');
-                }
-                return response.text();
-            })
-            .then(function(data) {
-                document.getElementById('event-module').innerHTML = data;
-            })
-            .catch(function(error) {
-                console.error('Fehler beim Laden:', error);
-                document.getElementById('event-module').innerHTML = '<p style="color: red; text-align: center;">Das Event-Modul konnte nicht geladen werden.</p>';
-            });
-    </script>
+    <!-- Footer Modul -->
+    <div data-include="components/footer.html"></div>
 
+    <!-- Supabase SDK & Navigation Include -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/include.js"></script>
+
+    <!-- Script: Lädt die nächsten 3 Termine aus Supabase -->
+    <script>
+        const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const previewGrid = document.getElementById('eventsPreviewGrid');
+            let combinedEvents = [];
+
+            // 1. Events laden
+            try {
+                const { data: eventsData } = await supabaseClient.from('events').select('*');
+                if (eventsData) {
+                    eventsData.forEach(evt => {
+                        if (evt.start_datum) {
+                            combinedEvents.push({
+                                title: evt.name || 'Veranstaltung',
+                                dateStr: evt.start_datum,
+                                ort: evt.ort || 'Kray',
+                                type: 'Event'
+                            });
+                        }
+                    });
+                }
+            } catch (e) { console.log(e); }
+
+            // 2. Termine laden
+            try {
+                const { data: termineData } = await supabaseClient.from('termine').select('*');
+                if (termineData) {
+                    termineData.forEach(term => {
+                        if (term.datum) {
+                            combinedEvents.push({
+                                title: term.titel || 'Termin',
+                                dateStr: term.datum,
+                                ort: term.ort || 'Kray',
+                                type: 'Termin'
+                            });
+                        }
+                    });
+                }
+            } catch (e) { console.log(e); }
+
+            // 3. Nach Datum sortieren und die 3 nächsten nehmen
+            combinedEvents.sort((a, b) => new Date(a.dateStr) - new Date(b.dateStr));
+            const upcoming = combinedEvents.slice(0, 3);
+
+            if (upcoming.length === 0) {
+                previewGrid.innerHTML = `
+                    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
+                        <p>Derzeit sind keine bevorstehenden Termine eingetragen.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 4. HTML rendern
+            let html = '';
+            upcoming.forEach(item => {
+                const dateObj = new Date(item.dateStr);
+                const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                html += `
+                    <div class="card">
+                        <span class="event-badge">${item.type}</span>
+                        <div class="event-date">
+                            <i class="fa-solid fa-calendar-day"></i> ${formattedDate}
+                        </div>
+                        <h3 class="card-title">${item.title}</h3>
+                        <p class="card-text"><i class="fa-solid fa-location-dot" style="margin-right: 0.3rem;"></i> ${item.ort}</p>
+                        <a href="events.html" style="color: var(--primary-color); font-weight: 600; text-decoration: none; font-size: 0.9rem;">
+                            Details & Anmelden <i class="fa-solid fa-arrow-right" style="font-size: 0.8rem;"></i>
+                        </a>
+                    </div>
+                `;
+            });
+
+            previewGrid.innerHTML = html;
+        });
+    </script>
 </body>
 </html>
