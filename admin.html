@@ -26,9 +26,11 @@
 
         .container { max-width: 800px; margin: 3rem auto; padding: 0 1.5rem; }
         
-        .card { background: var(--card-bg); border-radius: 16px; padding: 2.5rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05); }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 2.5rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05); margin-bottom: 2rem; }
         
-        h1 { font-size: 1.8rem; color: var(--text-main); margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; }
+        h1, h2 { color: var(--text-main); font-weight: 700; display: flex; align-items: center; gap: 0.6rem; }
+        h1 { font-size: 1.8rem; margin-top: 0; margin-bottom: 1.5rem; }
+        h2 { font-size: 1.3rem; margin-top: 0; margin-bottom: 1rem; }
         
         .form-group { margin-bottom: 1.25rem; }
         label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main); font-size: 0.95rem; }
@@ -42,6 +44,8 @@
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-danger { background: #ef4444; color: #fff; width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; }
         .btn-danger:hover { background: #dc2626; }
+        .btn-delete-item { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; transition: background 0.2s; }
+        .btn-delete-item:hover { background: #fecaca; }
 
         .hidden { display: none !important; }
         
@@ -50,6 +54,13 @@
         .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 
         .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        
+        /* Liste der bestehenden Beiträge */
+        .news-manage-list { display: flex; flex-direction: column; gap: 1rem; }
+        .news-manage-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; gap: 1rem; }
+        .news-manage-info { overflow: hidden; }
+        .news-manage-title { font-weight: 700; color: var(--text-main); font-size: 1rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .news-manage-date { font-size: 0.8rem; color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -58,7 +69,7 @@
         <!-- Login Card -->
         <div id="loginCard" class="card">
             <h1><i class="fa-solid fa-lock" style="color: var(--primary-color);"></i> Redaktions-Login</h1>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Bitte logge dich mit deinen Zugangsdaten ein, um Berichte zu verfassen.</p>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Bitte logge dich mit deinen Zugangsdaten ein, um Berichte zu verfassen oder zu verwalten.</p>
             
             <div id="loginError" class="alert alert-error hidden"></div>
 
@@ -75,36 +86,52 @@
             </form>
         </div>
 
-        <!-- Admin Form Card (Standardmäßig versteckt) -->
-        <div id="adminCard" class="card hidden">
-            <div class="header-bar">
-                <h1><i class="fa-solid fa-pen-to-square" style="color: var(--primary-color);"></i> Neuen Beitrag erstellen</h1>
-                <button id="logoutBtn" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Abmelden</button>
-            </div>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Der Beitrag wird nach dem Absenden sofort auf der Startseite im Bereich „Aktuelles“ veröffentlicht.</p>
+        <!-- Admin Dashboard (Standardmäßig versteckt) -->
+        <div id="adminCard" class="hidden">
             
-            <div id="formAlert" class="alert hidden"></div>
+            <!-- Neuer Beitrag Card -->
+            <div class="card">
+                <div class="header-bar">
+                    <h1><i class="fa-solid fa-pen-to-square" style="color: var(--primary-color);"></i> Neuen Beitrag erstellen</h1>
+                    <button id="logoutBtn" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Abmelden</button>
+                </div>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Der Beitrag wird nach dem Absenden sofort auf der Startseite veröffentlicht.</p>
+                
+                <div id="formAlert" class="alert hidden"></div>
 
-            <form id="newsForm">
-                <div class="form-group">
-                    <label for="newsTitle">Titel des Beitrags</label>
-                    <input type="text" id="newsTitle" required placeholder="Z. B. Erfolgreiches Nachbarschaftsfest im Park">
+                <form id="newsForm">
+                    <div class="form-group">
+                        <label for="newsTitle">Titel des Beitrags</label>
+                        <input type="text" id="newsTitle" required placeholder="Z. B. Erfolgreiches Nachbarschaftsfest im Park">
+                    </div>
+                    <div class="form-group">
+                        <label for="newsAuthor">Autor / Verantwortlich</label>
+                        <input type="text" id="newsAuthor" required placeholder="Z. B. Vorstand KrayFürAlle e.V.">
+                    </div>
+                    <div class="form-group">
+                        <label for="newsImage">Bild (optional)</label>
+                        <input type="file" id="newsImage" accept="image/*" style="padding: 0.5rem 0;">
+                        <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Wähle ein passendes Foto von deinem Gerät aus.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="newsContent">Inhalt / Text</label>
+                        <textarea id="newsContent" required placeholder="Schreibe hier deinen Bericht..."></textarea>
+                    </div>
+                    <button type="submit" id="submitBtn" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Beitrag veröffentlichen</button>
+                </form>
+            </div>
+
+            <!-- Bestehende Beiträge verwalten / löschen -->
+            <div class="card">
+                <h2><i class="fa-solid fa-list-check" style="color: var(--primary-color);"></i> Vorhandene Beiträge verwalten</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Hier siehst du alle veröffentlichten Artikel und kannst nicht mehr benötigte Einträge mit einem Klick löschen.</p>
+                
+                <div id="manageAlert" class="alert hidden"></div>
+                <div id="manageList" class="news-manage-list">
+                    <p style="color: var(--text-muted); text-align: center; padding: 1rem;">Lade Beiträge...</p>
                 </div>
-                <div class="form-group">
-                    <label for="newsAuthor">Autor / Verantwortlich</label>
-                    <input type="text" id="newsAuthor" required placeholder="Z. B. Vorstand KrayFürAlle e.V.">
-                </div>
-                <div class="form-group">
-                    <label for="newsImage">Bild (optional)</label>
-                    <input type="file" id="newsImage" accept="image/*" style="padding: 0.5rem 0;">
-                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Wähle ein passendes Foto von deinem Gerät aus.</small>
-                </div>
-                <div class="form-group">
-                    <label for="newsContent">Inhalt / Text</label>
-                    <textarea id="newsContent" required placeholder="Schreibe hier deinen Bericht..."></textarea>
-                </div>
-                <button type="submit" id="submitBtn" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Beitrag veröffentlichen</button>
-            </form>
+            </div>
+
         </div>
         
         <div style="text-align: center; margin-top: 2rem;">
@@ -129,13 +156,16 @@
         const newsForm = document.getElementById('newsForm');
         const formAlert = document.getElementById('formAlert');
         const submitBtn = document.getElementById('submitBtn');
+        const manageList = document.getElementById('manageList');
+        const manageAlert = document.getElementById('manageAlert');
 
-        // Prüfen, ob bereits eingeloggt
+        // Session prüfen und Admin-Bereich laden
         async function checkSession() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 loginCard.classList.add('hidden');
                 adminCard.classList.remove('hidden');
+                loadManageNews();
             } else {
                 loginCard.classList.remove('hidden');
                 adminCard.classList.add('hidden');
@@ -152,7 +182,7 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
+            const { error } = await supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: password
             });
@@ -171,7 +201,73 @@
             checkSession();
         });
 
-        // Beitrag absenden und in Supabase speichern
+        // Beiträge für die Verwaltung laden
+        async function loadManageNews() {
+            try {
+                const { data: newsData, error } = await supabaseClient
+                    .from('aktuelles')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!newsData || newsData.length === 0) {
+                    manageList.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin: 0;">Es sind derzeit keine Beiträge vorhanden.</p>`;
+                    return;
+                }
+
+                let html = '';
+                newsData.forEach(item => {
+                    const dateObj = new Date(item.created_at);
+                    const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                    html += `
+                        <div class="news-manage-item">
+                            <div class="news-manage-info">
+                                <div class="news-manage-title">${item.titel}</div>
+                                <div class="news-manage-date"><i class="fa-solid fa-calendar-days"></i> ${formattedDate} | Autor: ${item.autor}</div>
+                            </div>
+                            <button onclick="deleteNews('${item.id}')" class="btn-delete-item">
+                                <i class="fa-solid fa-trash-can"></i> Löschen
+                            </button>
+                        </div>
+                    `;
+                });
+
+                manageList.innerHTML = html;
+            } catch (err) {
+                manageList.innerHTML = `<p style="color: #991b1b; text-align: center; margin: 0;">Fehler beim Laden der Beitragsliste.</p>`;
+            }
+        }
+
+        // Beitrag löschen
+        window.deleteNews = async function(id) {
+            if (!confirm("Möchtest du diesen Beitrag wirklich unwiderruflich löschen?")) return;
+
+            manageAlert.classList.add('hidden');
+
+            try {
+                const { error } = await supabaseClient
+                    .from('aktuelles')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                manageAlert.textContent = 'Beitrag erfolgreich gelöscht!';
+                manageAlert.className = 'alert alert-success';
+                manageAlert.classList.remove('hidden');
+
+                // Liste neu laden
+                loadManageNews();
+            } catch (err) {
+                manageAlert.textContent = 'Fehler beim Löschen: ' + err.message;
+                manageAlert.className = 'alert alert-error';
+                manageAlert.classList.remove('hidden');
+            }
+        };
+
+        // Neuen Beitrag absenden
         newsForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             submitBtn.disabled = true;
@@ -186,7 +282,6 @@
             let imageUrl = '';
 
             try {
-                // Falls ein Bild ausgewählt wurde, in Supabase Storage hochladen
                 if (imageFile) {
                     const fileExt = imageFile.name.split('.').pop();
                     const fileName = `${Date.now()}.${fileExt}`;
@@ -198,7 +293,6 @@
 
                     if (uploadError) throw uploadError;
 
-                    // Öffentliche URL des Bildes abrufen
                     const { data: publicURLData } = supabaseClient.storage
                         .from('news-images')
                         .getPublicUrl(filePath);
@@ -206,7 +300,6 @@
                     imageUrl = publicURLData.publicUrl;
                 }
 
-                // In die Tabelle 'aktuelles' einfügen
                 const { error: insertError } = await supabaseClient
                     .from('aktuelles')
                     .insert([
@@ -219,6 +312,9 @@
                 formAlert.className = 'alert alert-success';
                 formAlert.classList.remove('hidden');
                 newsForm.reset();
+
+                // Liste unten sofort aktualisieren
+                loadManageNews();
 
             } catch (err) {
                 formAlert.textContent = 'Fehler beim Veröffentlichen: ' + err.message;
