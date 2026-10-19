@@ -76,7 +76,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/include.js"></script>
 
-    <!-- Direkter Logik-Script -->
+    <!-- Korrigierter Direktskalierungs-Script -->
     <script>
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
@@ -90,7 +90,7 @@
             const applicantName = document.getElementById('userName').value;
             const email = document.getElementById('userEmail').value;
             const count = parseInt(document.getElementById('ticketCount').value) || 1;
-            const notes = document.getElementById('userNotes'].value;
+            const notes = document.getElementById('userNotes').value; // Korrigiert zugehörige Klammer!
 
             try {
                 const { data, error } = await supabaseClient
