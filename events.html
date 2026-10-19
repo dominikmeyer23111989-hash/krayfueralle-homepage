@@ -77,21 +77,10 @@
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Include-Skript in try/catch gekapselt, damit es nachfolgende Skripte nicht blockieren kann -->
-    <script>
-        try {
-            const script = document.createElement('script');
-            script.src = 'js/include.js';
-            document.head.appendChild(script);
-        } catch (e) {
-            console.warn("Include-Skript konnte nicht geladen werden:", e);
-        }
-    </script>
 
-    <!-- Supabase Formular-Handler -->
+    <!-- Skript mit Test-Alert -->
     <script>
-        console.log("--> Supabase-Skript wird garantiert ausgeführt!");
+        alert("JAVASCRIPT LÄUFT!");
 
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
@@ -99,49 +88,30 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const bookingForm = document.getElementById('eventBookingForm');
-        
         if (bookingForm) {
-            console.log("--> Formular 'eventBookingForm' gefunden!");
-
             bookingForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                console.log("--> Senden-Button geklickt!");
 
-                const eventName = document.getElementById('eventSelect').value;
-                const applicantName = document.getElementById('userName').value;
-                const email = document.getElementById('userEmail').value;
-                const count = parseInt(document.getElementById('ticketCount').value) || 1;
-                const notes = document.getElementById('userNotes').value;
+                const { data, error } = await supabaseClient
+                    .from('event_bookings')
+                    .insert([
+                        { 
+                            event_name: document.getElementById('eventSelect').value,
+                            applicant_name: document.getElementById('userName').value,
+                            email: document.getElementById('userEmail').value,
+                            count: parseInt(document.getElementById('ticketCount').value) || 1,
+                            notes: document.getElementById('userNotes').value,
+                            status: 'pending'
+                        }
+                    ]);
 
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('event_bookings')
-                        .insert([
-                            { 
-                                event_name: eventName,
-                                applicant_name: applicantName,
-                                email: email,
-                                count: count,
-                                notes: notes,
-                                status: 'pending'
-                            }
-                        ]);
-
-                    if (error) {
-                        console.error("Supabase Fehler:", error);
-                        alert('Fehler beim Senden: ' + error.message);
-                    } else {
-                        console.log("Erfolgreich gespeichert:", data);
-                        alert('Deine Teilnahme-Anfrage wurde erfolgreich abgesendet!');
-                        bookingForm.reset();
-                    }
-                } catch (err) {
-                    console.error("Catch Fehler:", err);
-                    alert('Ein unerwarteter Fehler ist aufgetreten.');
+                if (error) {
+                    alert('Fehler: ' + error.message);
+                } else {
+                    alert('Erfolgreich gespeichert!');
+                    bookingForm.reset();
                 }
             });
-        } else {
-            console.error("--> Formular NICHT gefunden!");
         }
     </script>
 </body>
