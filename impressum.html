@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impressum – KrayFürAlle e.V.</title>
+    <link rel="icon" href="data:,">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    <style>
+        :root { --primary-color: #2563eb; --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --border-color: #e2e8f0; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: #334155; margin: 0; padding: 0; line-height: 1.7; }
+        .container { max-width: 800px; margin: 3rem auto; padding: 0 1.5rem; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 2.5rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05); }
+        h1 { font-size: 2rem; color: var(--text-main); margin-top: 0; margin-bottom: 1.5rem; font-weight: 700; }
+        .content-box { white-space: pre-line; color: var(--text-main); font-size: 1.05rem; }
+    </style>
+</head>
+<body>
+
+    <div data-include="components/navbar.html"></div>
+
+    <main class="container">
+        <div class="card">
+            <h1 id="pageTitle">Impressum</h1>
+            <div id="pageContent" class="content-box">
+                <p style="color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Lade Impressum...</p>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;"><i class="fa-solid fa-arrow-left"></i> Zurück zur Startseite</a>
+        </div>
+    </main>
+
+    <div data-include="components/footer.html"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/include.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('site_content')
+                    .select('*')
+                    .eq('id', 'impressum')
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    document.getElementById('pageTitle').textContent = data.titel;
+                    document.getElementById('pageContent').textContent = data.inhalt;
+                }
+            } catch (err) {
+                document.getElementById('pageContent').innerHTML = '<p>Das Impressum konnte im Moment nicht geladen werden.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
