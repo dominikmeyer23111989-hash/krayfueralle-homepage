@@ -206,15 +206,19 @@
 
         // Session prüfen und Admin-Bereich laden
         async function checkSession() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                loginCard.classList.add('hidden');
-                adminCard.classList.remove('hidden');
-                loadManageNews();
-                loadImpressumAdmin();
-            } else {
-                loginCard.classList.remove('hidden');
-                adminCard.classList.add('hidden');
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    loginCard.classList.add('hidden');
+                    adminCard.classList.remove('hidden');
+                    loadManageNews();
+                    loadImpressumAdmin();
+                } else {
+                    loginCard.classList.remove('hidden');
+                    adminCard.classList.add('hidden');
+                }
+            } catch (err) {
+                console.error("Session Check Fehler:", err);
             }
         }
 
