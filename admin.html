@@ -69,7 +69,7 @@
         <!-- Login Card -->
         <div id="loginCard" class="card">
             <h1><i class="fa-solid fa-lock" style="color: var(--primary-color);"></i> Redaktions-Login</h1>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Bitte logge dich mit deinen Zugangsdaten ein, um Berichte zu verfassen oder zu verwalten.</p>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Bitte logge dich mit deinen Zugangsdaten ein, um Inhalte und Berichte zu verwalten.</p>
             
             <div id="loginError" class="alert alert-error hidden"></div>
 
@@ -89,12 +89,17 @@
         <!-- Admin Dashboard (Standardmäßig versteckt) -->
         <div id="adminCard" class="hidden">
             
-            <!-- Neuer Beitrag Card -->
-            <div class="card">
-                <div class="header-bar">
-                    <h1><i class="fa-solid fa-pen-to-square" style="color: var(--primary-color);"></i> Neuen Beitrag erstellen</h1>
+            <!-- Globaler Header mit Logout -->
+            <div class="card" style="padding: 1.5rem 2.5rem; background: #1e293b; color: #ffffff;">
+                <div class="header-bar" style="margin-bottom: 0;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 1.4rem;"><i class="fa-solid fa-shield-halved" style="color: var(--primary-color);"></i> KrayFürAlle Admin-Bereich</h1>
                     <button id="logoutBtn" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Abmelden</button>
                 </div>
+            </div>
+
+            <!-- Neuer Beitrag Card -->
+            <div class="card">
+                <h2><i class="fa-solid fa-pen-to-square" style="color: var(--primary-color);"></i> Neuen Beitrag erstellen</h2>
                 <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Der Beitrag wird nach dem Absenden sofort auf der Startseite veröffentlicht.</p>
                 
                 <div id="formAlert" class="alert hidden"></div>
@@ -124,12 +129,32 @@
             <!-- Bestehende Beiträge verwalten / löschen -->
             <div class="card">
                 <h2><i class="fa-solid fa-list-check" style="color: var(--primary-color);"></i> Vorhandene Beiträge verwalten</h2>
-                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Hier siehst du alle veröffentlichten Artikel und kannst nicht mehr benötigte Einträge mit einem Klick löschen.</p>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Hier siehst du alle veröffentlichten Artikel und kannst nicht mehr benötigte Einträge löschen.</p>
                 
                 <div id="manageAlert" class="alert hidden"></div>
                 <div id="manageList" class="news-manage-list">
                     <p style="color: var(--text-muted); text-align: center; padding: 1rem;">Lade Beiträge...</p>
                 </div>
+            </div>
+
+            <!-- Impressum bearbeiten -->
+            <div class="card">
+                <h2><i class="fa-solid fa-building-columns" style="color: var(--primary-color);"></i> Impressum bearbeiten</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Passe hier die Vereinsdaten für das Impressum an. Änderungen sind sofort auf der Website sichtbar.</p>
+                
+                <div id="impressumAlert" class="alert hidden"></div>
+
+                <form id="impressumForm">
+                    <div class="form-group">
+                        <label for="impressumTitle">Seiten-Titel</label>
+                        <input type="text" id="impressumTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="impressumContent">Impressum Text</label>
+                        <textarea id="impressumContent" required style="min-height: 250px;"></textarea>
+                    </div>
+                    <button type="submit" id="impressumBtn" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Impressum aktualisieren</button>
+                </form>
             </div>
 
         </div>
@@ -166,6 +191,7 @@
                 loginCard.classList.add('hidden');
                 adminCard.classList.remove('hidden');
                 loadManageNews();
+                loadImpressumAdmin();
             } else {
                 loginCard.classList.remove('hidden');
                 adminCard.classList.add('hidden');
@@ -258,7 +284,6 @@
                 manageAlert.className = 'alert alert-success';
                 manageAlert.classList.remove('hidden');
 
-                // Liste neu laden
                 loadManageNews();
             } catch (err) {
                 manageAlert.textContent = 'Fehler beim Löschen: ' + err.message;
@@ -266,6 +291,56 @@
                 manageAlert.classList.remove('hidden');
             }
         };
+
+        // Impressum in den Admin-Feldern laden
+        async function loadImpressumAdmin() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('site_content')
+                    .select('*')
+                    .eq('id', 'impressum')
+                    .single();
+
+                if (data) {
+                    document.getElementById('impressumTitle').value = data.titel;
+                    document.getElementById('impressumContent').value = data.inhalt;
+                }
+            } catch (err) { console.log(err); }
+        }
+
+        // Impressum abspeichern
+        document.getElementById('impressumForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('impressumBtn');
+            const alertBox = document.getElementById('impressumAlert');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Speichere...';
+            alertBox.classList.add('hidden');
+
+            const title = document.getElementById('impressumTitle').value;
+            const content = document.getElementById('impressumContent').value;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('site_content')
+                    .update({ titel: title, inhalt: content, updated_at: new Date() })
+                    .eq('id', 'impressum');
+
+                if (error) throw error;
+
+                alertBox.textContent = 'Impressum erfolgreich aktualisiert!';
+                alertBox.className = 'alert alert-success';
+                alertBox.classList.remove('hidden');
+            } catch (err) {
+                alertBox.textContent = 'Fehler beim Speichern: ' + err.message;
+                alertBox.className = 'alert alert-error';
+                alertBox.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Impressum aktualisieren';
+            }
+        });
 
         // Neuen Beitrag absenden
         newsForm.addEventListener('submit', async function(e) {
@@ -313,7 +388,6 @@
                 formAlert.classList.remove('hidden');
                 newsForm.reset();
 
-                // Liste unten sofort aktualisieren
                 loadManageNews();
 
             } catch (err) {
