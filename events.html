@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Termine & Buchungsanfragen – KrayFürAlle e.V.</title>
+    <title>Termine & Anfragen – KrayFürAlle e.V.</title>
     <link rel="icon" href="data:,">
     
     <!-- Fonts & Icons -->
@@ -41,15 +41,24 @@
         .fc-daygrid-day:hover { background-color: #f1f5f9; }
 
         /* Formular Styling */
-        .btn-primary { background: var(--primary-color); color: #fff; padding: 0.85rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; transition: background 0.2s; width: 100%; }
+        .btn-primary { background: var(--primary-color); color: #fff; padding: 0.75rem 1.25rem; border-radius: 8px; text-decoration: none; font-weight: 600; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; transition: background 0.2s; width: 100%; font-size: 0.95rem; }
         .btn-primary:hover { background: var(--primary-hover); }
 
         .form-group { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; }
-        .form-group label { font-weight: 500; font-size: 0.9rem; color: var(--text-main); }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; box-sizing: border-box; }
+        .form-group label { font-weight: 500; font-size: 0.85rem; color: var(--text-main); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.65rem; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; box-sizing: border-box; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary-color); }
         
-        .selected-date-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: #e0e7ff; color: #3730a3; padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; margin-bottom: 1.5rem; }
+        /* Modal Popup Styling */
+        .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; padding: 1rem; box-sizing: border-box; }
+        .modal-card { background: #ffffff; border-radius: 16px; width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); position: relative; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .modal-close { position: absolute; top: 1.25rem; right: 1.25rem; background: #f1f5f9; border: none; font-size: 1.1rem; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; }
+        .modal-close:hover { background: #e2e8f0; color: #0f172a; }
+
+        .detail-row { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.8rem; font-size: 0.95rem; color: #334155; }
+        .detail-row i { color: var(--primary-color); width: 20px; margin-top: 0.2rem; }
     </style>
 </head>
 <body>
@@ -58,80 +67,116 @@
     <div data-include="components/navbar.html"></div>
 
     <main class="container">
-        <h1 class="header-title">Belegungsplan & Anfragen</h1>
-        <p class="header-subtitle">Klicke auf einen Tag im Kalender, um ein Wunschdatum auszuwählen oder auf ein Event, um eine Teilnahme anzufreggen.</p>
+        <h1 class="header-title">Veranstaltungen & Buchungen</h1>
+        <p class="header-subtitle">Klicke auf einen <strong>Eintrag im Kalender</strong> für Details und zur Anmeldung, oder klicke auf ein <strong>freies Datum</strong> für eine Veranstalter-Anfrage.</p>
 
-        <!-- 1. Interaktiver Kalender -->
+        <!-- Kalender Card -->
         <div class="card">
             <h3 style="font-size: 1.3rem; color: var(--text-main); margin-top: 0; margin-bottom: 1.5rem;">
                 <i class="fa-solid fa-calendar-days" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
-                Kalender & Vereins-Termine
+                Vereinskalender
             </h3>
             <div id="calendar"></div>
         </div>
+    </main>
 
-        <!-- 2. Buchungs- & Anfrageformular -->
-        <div class="card" id="booking-section">
-            <h3 style="font-size: 1.3rem; color: var(--text-main); margin-top: 0; margin-bottom: 0.5rem;">
-                <i class="fa-solid fa-paper-plane" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
-                Anfrage senden
-            </h3>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Wähle oben im Kalender dein Wunschdatum aus oder trage es hier direkt ein.</p>
+    <!-- MASK 1: Event-Details & Teilnahme Modal -->
+    <div id="eventDetailModal" class="modal-backdrop">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+            
+            <span style="background: #e0e7ff; color: #3730a3; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Vereins-Termin</span>
+            <h2 id="modalEventTitle" style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 1rem 0;">-</h2>
 
-            <div id="selectedDateBadge" class="selected-date-badge" style="display: none;">
-                <i class="fa-solid fa-calendar-check"></i> <span>Ausgewähltes Datum / Event: <strong id="badgeDateText">-</strong></span>
+            <!-- Event Details -->
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                <div class="detail-row"><i class="fa-solid fa-calendar-day"></i> <div><strong>Datum:</strong> <span id="modalEventDate">-</span></div></div>
+                <div class="detail-row" id="rowTime" style="display: none;"><i class="fa-solid fa-clock"></i> <div><strong>Uhrzeit:</strong> <span id="modalEventTime">-</span></div></div>
+                <div class="detail-row" id="rowOrt" style="display: none;"><i class="fa-solid fa-location-dot"></i> <div><strong>Ort / Treffpunkt:</strong> <span id="modalEventOrt">-</span></div></div>
+                <div class="detail-row" id="rowContact" style="display: none;"><i class="fa-solid fa-user"></i> <div><strong>Ansprechperson:</strong> <span id="modalEventContact">-</span></div></div>
+                <div class="detail-row" id="rowDesc" style="display: none;"><i class="fa-solid fa-align-left"></i> <div><strong>Beschreibung:</strong> <span id="modalEventDesc">-</span></div></div>
             </div>
 
-            <form id="eventBookingForm">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
-                    <div class="form-group">
-                        <label for="bookingType">Art der Anfrage:</label>
-                        <select id="bookingType" name="bookingType" required>
-                            <option value="Vereinsbuchung / Veranstalter">Verein / Räume buchen (Veranstalter)</option>
-                            <option value="Teilnahme an Veranstaltung">Teilnahme an angezeigtem Event</option>
-                            <option value="Allgemeine Anfrage">Allgemeine Terminanfrage</option>
-                        </select>
-                    </div>
+            <!-- Teilnahme Maske -->
+            <h4 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.8rem;">An dieser Veranstaltung teilnehmen</h4>
+            <form id="participateForm">
+                <input type="hidden" id="partEventTitle">
+                <input type="hidden" id="partEventDate">
 
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
                     <div class="form-group">
-                        <label for="requestDate">Gewünschtes Datum:</label>
-                        <input type="date" id="requestDate" name="requestDate" required>
+                        <label for="partName">Dein Name:</label>
+                        <input type="text" id="partName" required placeholder="Max Mustermann">
+                    </div>
+                    <div class="form-group">
+                        <label for="partEmail">E-Mail-Adresse:</label>
+                        <input type="email" id="partEmail" required placeholder="max@example.de">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="eventTitleInput">Veranstaltungsname / Anlass (optional):</label>
-                    <input type="text" id="eventTitleInput" name="eventTitleInput" placeholder="z. B. Workshop, Stadtteiltreff, Private Nutzung">
-                </div>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.8rem;">
                     <div class="form-group">
-                        <label for="userName">Dein Name / Ansprechpartner:</label>
-                        <input type="text" id="userName" name="userName" autocomplete="name" placeholder="Max Mustermann" required>
+                        <label for="partCount">Personen:</label>
+                        <input type="number" id="partCount" min="1" value="1" required>
                     </div>
                     <div class="form-group">
-                        <label for="userEmail">E-Mail-Adresse:</label>
-                        <input type="email" id="userEmail" name="userEmail" autocomplete="email" placeholder="max@example.de" required>
+                        <label for="partNotes">Hinweis (optional):</label>
+                        <input type="text" id="partNotes" placeholder="z. B. Bringt Begleitung mit">
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label for="ticketCount">Personenanzahl:</label>
-                        <input type="number" id="ticketCount" name="ticketCount" autocomplete="off" min="1" value="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="userNotes">Anmerkungen / Details zur Anfrage:</label>
-                        <input type="text" id="userNotes" name="userNotes" autocomplete="off" placeholder="z. B. Benötigte Technik, Uhrzeit, besondere Wünsche">
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-primary" style="margin-top: 0.5rem;">
-                    <i class="fa-solid fa-paper-plane"></i> Anfrage kostenfrei absenden
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-check"></i> Verbindlich anmelden
                 </button>
             </form>
         </div>
-    </main>
+    </div>
+
+    <!-- MASK 2: Veranstalter / Vermietung Anfrage Modal -->
+    <div id="bookingRequestModal" class="modal-backdrop">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+
+            <span style="background: #fef3c7; color: #92400e; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Buchungsanfrage</span>
+            <h2 style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 0.5rem 0;">Veranstalter- / Terminanfrage</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Du stellst eine Anfrage für das Datum: <strong id="reqDateDisplay" style="color: var(--primary-color);">-</strong></p>
+
+            <form id="organizerForm">
+                <input type="hidden" id="reqDateValue">
+
+                <div class="form-group">
+                    <label for="reqTitle">Name der geplanten Veranstaltung / Anlass:</label>
+                    <input type="text" id="reqTitle" required placeholder="z. B. Stadtteil-Workshop, Gruppentreffen, Schulung">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+                    <div class="form-group">
+                        <label for="reqName">Name / Organisation:</label>
+                        <input type="text" id="reqName" required placeholder="Max Mustermann / Verein e.V.">
+                    </div>
+                    <div class="form-group">
+                        <label for="reqEmail">E-Mail-Adresse:</label>
+                        <input type="email" id="reqEmail" required placeholder="max@example.de">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.8rem;">
+                    <div class="form-group">
+                        <label for="reqCount">Erwartete Personen:</label>
+                        <input type="number" id="reqCount" min="1" value="10" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reqNotes">Details & Wünsche:</label>
+                        <input type="text" id="reqNotes" placeholder="z. B. Uhrzeit, benötigte Räume/Technik">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="background: #059669;">
+                    <i class="fa-solid fa-paper-plane"></i> Buchungsanfrage absenden
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- Footer-Modul -->
     <div data-include="components/footer.html"></div>
@@ -147,58 +192,58 @@
         
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        function closeModals() {
+            document.getElementById('eventDetailModal').style.display = 'none';
+            document.getElementById('bookingRequestModal').style.display = 'none';
+        }
+
         document.addEventListener('DOMContentLoaded', async function() {
             let calendarEvents = [];
 
-            // 1. Daten aus Tabelle "events" laden (Spalten: name, start_datum, ort etc.)
+            // 1. Tabelle 'events' auslesen
             try {
-                const { data: eventsData, error: eventsError } = await supabaseClient
-                    .from('events')
-                    .select('*');
-                
-                if (!eventsError && eventsData) {
-                    const mappedEvents = eventsData.map(evt => ({
-                        title: evt.name || 'Veranstaltung',
-                        start: evt.start_datum,
-                        color: '#2563eb', // Blau für Events
-                        extendedProps: {
-                            ort: evt.ort,
-                            beschreibung: evt.bemerkungen
-                        }
-                    }));
-                    calendarEvents = calendarEvents.concat(mappedEvents);
-                } else {
-                    console.log("Fehler beim Laden von 'events':", eventsError);
+                const { data: eventsData } = await supabaseClient.from('events').select('*');
+                if (eventsData) {
+                    eventsData.forEach(evt => {
+                        calendarEvents.push({
+                            title: evt.name,
+                            start: evt.start_datum,
+                            color: '#2563eb',
+                            extendedProps: {
+                                type: 'Event',
+                                ort: evt.ort,
+                                startZeit: evt.uhrzeit_start,
+                                endZeit: evt.uhrzeit_ende,
+                                beschreibung: evt.bemerkungen,
+                                ansprechperson: evt.ansprechperson
+                            }
+                        });
+                    });
                 }
-            } catch (e) {
-                console.log("Tabelle 'events' konnte nicht geladen werden:", e);
-            }
+            } catch (e) { console.log(e); }
 
-            // 2. Daten aus Tabelle "termine" laden (Spalten: titel, datum, beschreibung etc.)
+            // 2. Tabelle 'termine' auslesen
             try {
-                const { data: termineData, error: termineError } = await supabaseClient
-                    .from('termine')
-                    .select('*');
-                
-                if (!termineError && termineData) {
-                    const mappedTermine = termineData.map(term => ({
-                        title: term.titel || 'Termin',
-                        start: term.datum,
-                        color: '#0d9488', // Türkis für Termine
-                        extendedProps: {
-                            ort: term.ort,
-                            beschreibung: term.beschreibung
-                        }
-                    }));
-                    calendarEvents = calendarEvents.concat(mappedTermine);
-                } else {
-                    console.log("Fehler beim Laden von 'termine':", termineError);
+                const { data: termineData } = await supabaseClient.from('termine').select('*');
+                if (termineData) {
+                    termineData.forEach(term => {
+                        calendarEvents.push({
+                            title: term.titel,
+                            start: term.datum,
+                            color: '#0d9488',
+                            extendedProps: {
+                                type: 'Termin',
+                                ort: term.ort,
+                                startZeit: term.uhrzeit_von,
+                                endZeit: term.uhrzeit_bis,
+                                beschreibung: term.beschreibung
+                            }
+                        });
+                    });
                 }
-            } catch (e) {
-                console.log("Tabelle 'termine' konnte nicht geladen werden:", e);
-            }
+            } catch (e) { console.log(e); }
 
-            // 3. FullCalendar Initialisieren
+            // 3. Kalender initialisieren
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -206,88 +251,105 @@
                 buttonText: { today: 'Heute' },
                 events: calendarEvents,
                 
-                // Klick auf ein freies Datum (für Veranstalter / Vermietung)
-                dateClick: function(info) {
-                    const selectedDate = info.dateStr;
-                    document.getElementById('requestDate').value = selectedDate;
-                    document.getElementById('bookingType').value = "Vereinsbuchung / Veranstalter";
-                    
-                    const formattedDate = new Date(selectedDate).toLocaleDateString('de-DE');
-                    document.getElementById('badgeDateText').innerText = "Wunschdatum: " + formattedDate;
-                    document.getElementById('selectedDateBadge').style.display = 'inline-flex';
-                    
-                    document.getElementById('booking-section').scrollIntoView({ behavior: 'smooth' });
+                // USECASE 1: Klick auf ein Event -> Details + Teilnahme Modal
+                eventClick: function(info) {
+                    const evt = info.event;
+                    const props = evt.extendedProps;
+                    const dateFormatted = new Date(evt.startStr).toLocaleDateString('de-DE');
+
+                    document.getElementById('modalEventTitle').innerText = evt.title;
+                    document.getElementById('modalEventDate').innerText = dateFormatted;
+                    document.getElementById('partEventTitle').value = evt.title;
+                    document.getElementById('partEventDate').value = evt.startStr.split('T')[0];
+
+                    // Optional Details einblenden
+                    if (props.startZeit) {
+                        document.getElementById('modalEventTime').innerText = props.startZeit + (props.endZeit ? ' - ' + props.endZeit : '');
+                        document.getElementById('rowTime').style.display = 'flex';
+                    } else { document.getElementById('rowTime').style.display = 'none'; }
+
+                    if (props.ort) {
+                        document.getElementById('modalEventOrt').innerText = props.ort;
+                        document.getElementById('rowOrt').style.display = 'flex';
+                    } else { document.getElementById('rowOrt').style.display = 'none'; }
+
+                    if (props.ansprechperson) {
+                        document.getElementById('modalEventContact').innerText = props.ansprechperson;
+                        document.getElementById('rowContact').style.display = 'flex';
+                    } else { document.getElementById('rowContact').style.display = 'none'; }
+
+                    if (props.beschreibung) {
+                        document.getElementById('modalEventDesc').innerText = props.beschreibung;
+                        document.getElementById('rowDesc').style.display = 'flex';
+                    } else { document.getElementById('rowDesc').style.display = 'none'; }
+
+                    document.getElementById('eventDetailModal').style.display = 'flex';
                 },
 
-                // Klick auf ein bestehendes Event aus App/Datenbank
-                eventClick: function(info) {
-                    const title = info.event.title;
-                    const eventDate = info.event.startStr.split('T')[0];
-                    const props = info.event.extendedProps;
+                // USECASE 2: Klick auf freies Datum -> Veranstalter-Anfrage Modal
+                dateClick: function(info) {
+                    const rawDate = info.dateStr;
+                    const dateFormatted = new Date(rawDate).toLocaleDateString('de-DE');
 
-                    document.getElementById('eventTitleInput').value = title;
-                    document.getElementById('requestDate').value = eventDate;
-                    document.getElementById('bookingType').value = "Teilnahme an Veranstaltung";
-                    
-                    if (props.ort) {
-                        document.getElementById('userNotes').value = "Ort: " + props.ort;
-                    }
+                    document.getElementById('reqDateDisplay').innerText = dateFormatted;
+                    document.getElementById('reqDateValue').value = rawDate;
 
-                    const formattedDate = new Date(eventDate).toLocaleDateString('de-DE');
-                    document.getElementById('badgeDateText').innerText = title + " (" + formattedDate + ")";
-                    document.getElementById('selectedDateBadge').style.display = 'inline-flex';
-
-                    document.getElementById('booking-section').scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('bookingRequestModal').style.display = 'flex';
                 }
             });
             calendar.render();
 
-            // 4. Formular Absenden an Supabase (event_bookings)
-            const bookingForm = document.getElementById('eventBookingForm');
-            if (bookingForm) {
-                bookingForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
+            // 4. Submit-Handler 1: Teilnahme an Event
+            document.getElementById('participateForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const title = document.getElementById('partEventTitle').value;
+                const date = document.getElementById('partEventDate').value;
+                const name = document.getElementById('partName').value;
+                const email = document.getElementById('partEmail').value;
+                const count = parseInt(document.getElementById('partCount').value) || 1;
+                const notes = document.getElementById('partNotes').value;
 
-                    const bookingType = document.getElementById('bookingType').value;
-                    const reqDate = document.getElementById('requestDate').value;
-                    const customTitle = document.getElementById('eventTitleInput').value;
-                    const applicantName = document.getElementById('userName').value;
-                    const email = document.getElementById('userEmail').value;
-                    const count = parseInt(document.getElementById('ticketCount').value) || 1;
-                    const userNotes = document.getElementById('userNotes').value;
+                const { error } = await supabaseClient.from('event_bookings').insert([{
+                    event_name: `[Teilnahme] ${title} (${date})`,
+                    applicant_name: name,
+                    email: email,
+                    count: count,
+                    notes: notes,
+                    status: 'pending'
+                }]);
 
-                    const fullEventName = customTitle 
-                        ? `[${bookingType}] ${customTitle} (Datum: ${reqDate})`
-                        : `[${bookingType}] Datum: ${reqDate}`;
+                if (!error) {
+                    alert('Deine Teilnahme wurde erfolgreich angemeldet!');
+                    closeModals();
+                    this.reset();
+                } else { alert('Fehler: ' + error.message); }
+            });
 
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('event_bookings')
-                            .insert([
-                                { 
-                                    event_name: fullEventName,
-                                    applicant_name: applicantName,
-                                    email: email,
-                                    count: count,
-                                    notes: userNotes,
-                                    status: 'pending'
-                                }
-                            ]);
+            // 5. Submit-Handler 2: Veranstalter Buchungsanfrage
+            document.getElementById('organizerForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const title = document.getElementById('reqTitle').value;
+                const date = document.getElementById('reqDateValue').value;
+                const name = document.getElementById('reqName').value;
+                const email = document.getElementById('reqEmail').value;
+                const count = parseInt(document.getElementById('reqCount').value) || 1;
+                const notes = document.getElementById('reqNotes').value;
 
-                        if (error) {
-                            console.error("Supabase Fehler:", error);
-                            alert('Fehler beim Senden: ' + error.message);
-                        } else {
-                            alert('Deine Anfrage wurde erfolgreich übermittelt!');
-                            bookingForm.reset();
-                            document.getElementById('selectedDateBadge').style.display = 'none';
-                        }
-                    } catch (err) {
-                        console.error("Catch Fehler:", err);
-                        alert('Ein unerwarteter Fehler ist aufgetreten.');
-                    }
-                });
-            }
+                const { error } = await supabaseClient.from('event_bookings').insert([{
+                    event_name: `[Veranstalter-Anfrage] ${title} (Datum: ${date})`,
+                    applicant_name: name,
+                    email: email,
+                    count: count,
+                    notes: notes,
+                    status: 'pending'
+                }]);
+
+                if (!error) {
+                    alert('Deine Veranstalter-Buchungsanfrage wurde erfolgreich übermittelt!');
+                    closeModals();
+                    this.reset();
+                } else { alert('Fehler: ' + error.message); }
+            });
         });
     </script>
 </body>
