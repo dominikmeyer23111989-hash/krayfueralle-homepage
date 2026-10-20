@@ -24,7 +24,7 @@
         * { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: #334155; margin: 0; padding: 0; line-height: 1.6; }
 
-        .container { max-width: 800px; margin: 3rem auto; padding: 0 1.5rem; }
+        .container { max-width: 850px; margin: 3rem auto; padding: 0 1.5rem; }
         
         .card { background: var(--card-bg); border-radius: 16px; padding: 2.5rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05); margin-bottom: 2rem; }
         
@@ -34,7 +34,7 @@
         
         .form-group { margin-bottom: 1.25rem; }
         label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main); font-size: 0.95rem; }
-        input[type="email"], input[type="password"], input[type="text"], textarea {
+        input[type="email"], input[type="password"], input[type="text"], input[type="url"], select, textarea {
             width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; font-family: inherit; background: #fff;
         }
         textarea { resize: vertical; min-height: 100px; }
@@ -55,12 +55,14 @@
 
         .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         
-        /* Liste der bestehenden Beiträge */
-        .news-manage-list { display: flex; flex-direction: column; gap: 1rem; }
-        .news-manage-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; gap: 1rem; }
-        .news-manage-info { overflow: hidden; }
-        .news-manage-title { font-weight: 700; color: var(--text-main); font-size: 1rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .news-manage-date { font-size: 0.8rem; color: var(--text-muted); }
+        /* Liste der bestehenden Beiträge & Sponsoren */
+        .manage-list { display: flex; flex-direction: column; gap: 1rem; }
+        .manage-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; gap: 1rem; }
+        .manage-info { overflow: hidden; }
+        .manage-title { font-weight: 700; color: var(--text-main); font-size: 1rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .manage-subtitle { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .badge { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--primary-color); background: #eff6ff; padding: 0.2rem 0.6rem; border-radius: 20px; display: inline-block; margin-bottom: 0.3rem; }
     </style>
 </head>
 <body>
@@ -86,7 +88,7 @@
             </form>
         </div>
 
-        <!-- Admin Dashboard (Standardmäßig versteckt) -->
+        <!-- Admin Dashboard -->
         <div id="adminCard" class="hidden">
             
             <!-- Globaler Header mit Logout -->
@@ -94,6 +96,77 @@
                 <div class="header-bar" style="margin-bottom: 0;">
                     <h1 style="color: #ffffff; margin: 0; font-size: 1.4rem;"><i class="fa-solid fa-shield-halved" style="color: var(--primary-color);"></i> KrayFürAlle Admin-Bereich</h1>
                     <button id="logoutBtn" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Abmelden</button>
+                </div>
+            </div>
+
+            <!-- Insights / Statistik Card -->
+            <div class="card">
+                <h2><i class="fa-solid fa-chart-line" style="color: var(--primary-color);"></i> Insights & Plattform-Statistiken</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Aktuelle Übersicht der Vereinsdaten und veröffentlichten Inhalte.</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <!-- Stat 1: Aktive Mitglieder -->
+                    <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Aktive Mitglieder</div>
+                        <div id="statMembersCount" style="font-size: 2.2rem; font-weight: 800; color: var(--primary-color); margin-top: 0.2rem;">--</div>
+                        <div id="statMembersDetail" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Lade...</div>
+                    </div>
+
+                    <!-- Stat 2: Veröffentlichte Beiträge -->
+                    <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Veröffentlichte Artikel</div>
+                        <div id="statNewsCount" style="font-size: 2.2rem; font-weight: 800; color: #10b981; margin-top: 0.2rem;">--</div>
+                        <div id="statNewsLatest" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Lade...</div>
+                    </div>
+
+                    <!-- Stat 3: Sponsoren & Partner -->
+                    <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Sponsoren & Partner</div>
+                        <div id="statSponsorenCount" style="font-size: 2.2rem; font-weight: 800; color: #8b5cf6; margin-top: 0.2rem;">--</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Gelistete Partner</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sponsoren & Partner verwalten (Neu) -->
+            <div class="card">
+                <h2><i class="fa-solid fa-handshake" style="color: var(--primary-color);"></i> Sponsoren & Partner verwalten</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Füge Logos, Links und Partner-Kategorien für die Startseite hinzu.</p>
+
+                <div id="sponsorAlert" class="alert hidden"></div>
+
+                <!-- Formular neuen Sponsor anlegen -->
+                <form id="sponsorForm" style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h3 style="margin-top: 0; font-size: 1.05rem; margin-bottom: 1rem;">Neuen Sponsor anlegen</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="spName">Firmen- / Name *</label>
+                            <input type="text" id="spName" required placeholder="z. B. Stadtwerke Essen">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="spKategorie">Kategorie</label>
+                            <select id="spKategorie">
+                                <option value="Hauptsponsor">Hauptsponsor</option>
+                                <option value="Premium-Partner">Premium-Partner</option>
+                                <option value="Förderer" selected>Förderer</option>
+                                <option value="Partner">Partner</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="spLogo">Logo-URL (Bild-Link)</label>
+                            <input type="url" id="spLogo" placeholder="https://beispiel.de/logo.png">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="spWebsite">Website URL</label>
+                            <input type="url" id="spWebsite" placeholder="https://beispiel.de">
+                        </div>
+                    </div>
+                    <button type="submit" id="spSubmitBtn" class="btn btn-primary" style="margin-top: 1.25rem;"><i class="fa-solid fa-plus"></i> Sponsor hinzufügen</button>
+                </form>
+
+                <!-- Liste bestehender Sponsoren -->
+                <div id="sponsorenAdminList" class="manage-list">
+                    <p style="color: var(--text-muted); text-align: center;">Lade Sponsoren...</p>
                 </div>
             </div>
 
@@ -132,15 +205,15 @@
                 <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Hier siehst du alle veröffentlichten Artikel und kannst nicht mehr benötigte Einträge löschen.</p>
                 
                 <div id="manageAlert" class="alert hidden"></div>
-                <div id="manageList" class="news-manage-list">
+                <div id="manageList" class="manage-list">
                     <p style="color: var(--text-muted); text-align: center; padding: 1rem;">Lade Beiträge...</p>
                 </div>
             </div>
 
-            <!-- Strukturiertes Impressum bearbeiten -->
+            <!-- Impressum bearbeiten -->
             <div class="card">
                 <h2><i class="fa-solid fa-building-columns" style="color: var(--primary-color);"></i> Impressum bearbeiten</h2>
-                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Passe hier die strukturierten Impressums-Daten an. Die Änderungen sind sofort auf der Website aktiv.</p>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Passe hier die strukturierten Impressums-Daten an.</p>
                 
                 <div id="impressumAlert" class="alert hidden"></div>
 
@@ -204,13 +277,15 @@
         const manageList = document.getElementById('manageList');
         const manageAlert = document.getElementById('manageAlert');
 
-        // Session prüfen und Admin-Bereich laden (lokaler Status)
+        // Session prüfen
         function checkSession() {
             try {
                 const isLoggedIn = localStorage.getItem('kray_admin_logged_in');
                 if (isLoggedIn === 'true') {
                     loginCard.classList.add('hidden');
                     adminCard.classList.remove('hidden');
+                    loadInsights();
+                    loadSponsorenAdmin();
                     loadManageNews();
                     loadImpressumAdmin();
                 } else {
@@ -224,7 +299,124 @@
 
         checkSession();
 
-        // Login direkt über die mitglieder-Tabelle prüfen
+        // 1. INSIGHTS / STATISTIKEN LADEN
+        async function loadInsights() {
+            try {
+                // Mitglieder-Anzahl
+                const { data: members } = await supabaseClient.from('mitglieder').select('status, hat_inventar_rechte, rolle, ist_gesperrt');
+                if (members) {
+                    const activeMembers = members.filter(m => m.status === 'aktiv' && !m.ist_gesperrt).length;
+                    const passiveMembers = members.filter(m => m.status === 'passiv').length;
+                    document.getElementById('statMembersCount').textContent = activeMembers;
+                    document.getElementById('statMembersDetail').textContent = `${members.length} gesamt (${passiveMembers} passiv)`;
+                }
+
+                // Beiträge-Anzahl
+                const { data: news } = await supabaseClient.from('aktuelles').select('created_at').order('created_at', { ascending: false });
+                if (news) {
+                    document.getElementById('statNewsCount').textContent = news.length;
+                    if (news.length > 0) {
+                        const lastDate = new Date(news[0].created_at).toLocaleDateString('de-DE');
+                        document.getElementById('statNewsLatest').textContent = `Letzter: ${lastDate}`;
+                    } else {
+                        document.getElementById('statNewsLatest').textContent = 'Keine Beiträge';
+                    }
+                }
+            } catch (err) { console.error("Insights Fehler:", err); }
+        }
+
+        // 2. SPONSOREN VERWALTUNG
+        async function loadSponsorenAdmin() {
+            const listContainer = document.getElementById('sponsorenAdminList');
+            try {
+                const { data: sponsoren, error } = await supabaseClient.from('sponsoren').select('*').order('created_at', { ascending: false });
+                
+                if (sponsoren) {
+                    document.getElementById('statSponsorenCount').textContent = sponsoren.length;
+                }
+
+                if (error || !sponsoren || sponsoren.length === 0) {
+                    listContainer.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin: 0;">Keine Sponsoren eingetragen.</p>`;
+                    return;
+                }
+
+                let html = '';
+                sponsoren.forEach(sp => {
+                    html += `
+                        <div class="manage-item">
+                            <div class="manage-info">
+                                <span class="badge">${sp.kategorie || 'Partner'}</span>
+                                <div class="manage-title">${sp.name}</div>
+                                <div class="manage-subtitle">${sp.website_url ? sp.website_url : 'Keine Website verlinkt'}</div>
+                            </div>
+                            <button onclick="deleteSponsor('${sp.id}')" class="btn-delete-item">
+                                <i class="fa-solid fa-trash-can"></i> Löschen
+                            </button>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+            } catch (err) {
+                listContainer.innerHTML = `<p style="color: #991b1b; text-align: center; margin: 0;">Fehler beim Laden der Sponsoren.</p>`;
+            }
+        }
+
+        // Sponsor erstellen
+        document.getElementById('sponsorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('spSubmitBtn');
+            const alertBox = document.getElementById('sponsorAlert');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Speichere...';
+            alertBox.classList.add('hidden');
+
+            const name = document.getElementById('spName').value.trim();
+            const kategorie = document.getElementById('spKategorie').value;
+            const logo_url = document.getElementById('spLogo').value.trim();
+            const website_url = document.getElementById('spWebsite').value.trim();
+
+            try {
+                const { error } = await supabaseClient.from('sponsoren').insert([{ name, kategorie, logo_url, website_url }]);
+                if (error) throw error;
+
+                alertBox.textContent = 'Sponsor erfolgreich hinzugefügt!';
+                alertBox.className = 'alert alert-success';
+                alertBox.classList.remove('hidden');
+                document.getElementById('sponsorForm').reset();
+                loadSponsorenAdmin();
+            } catch (err) {
+                alertBox.textContent = 'Fehler beim Hinzufügen: ' + err.message;
+                alertBox.className = 'alert alert-error';
+                alertBox.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-plus"></i> Sponsor hinzufügen';
+            }
+        });
+
+        // Sponsor löschen
+        window.deleteSponsor = async function(id) {
+            if (!confirm("Möchtest du diesen Sponsor wirklich löschen?")) return;
+            const alertBox = document.getElementById('sponsorAlert');
+            alertBox.classList.add('hidden');
+
+            try {
+                const { error } = await supabaseClient.from('sponsoren').delete().eq('id', id);
+                if (error) throw error;
+
+                alertBox.textContent = 'Sponsor gelöscht!';
+                alertBox.className = 'alert alert-success';
+                alertBox.classList.remove('hidden');
+                loadSponsorenAdmin();
+            } catch (err) {
+                alertBox.textContent = 'Fehler beim Löschen: ' + err.message;
+                alertBox.className = 'alert alert-error';
+                alertBox.classList.remove('hidden');
+            }
+        };
+
+        // LOGIN PRÜFUNG
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             loginError.classList.add('hidden');
@@ -233,36 +425,23 @@
             const passwordInput = document.getElementById('password').value.trim();
 
             try {
-                // Wir fragen die mitglieder-Tabelle ab
                 const { data: memberData, error } = await supabaseClient
                     .from('mitglieder')
                     .select('*')
                     .eq('email', email)
                     .single();
 
-                if (error || !memberData) {
-                    throw new Error("E-Mail-Adresse nicht in der Mitgliederdatenbank gefunden.");
-                }
-
-                if (memberData.ist_gesperrt) {
-                    throw new Error("Dieser Account ist gesperrt.");
-                }
-
-                // Prüfen ob Admin-/Inventarrechte vorhanden sind
+                if (error || !memberData) throw new Error("E-Mail-Adresse nicht gefunden.");
+                if (memberData.ist_gesperrt) throw new Error("Dieser Account ist gesperrt.");
                 if (!memberData.hat_inventar_rechte && memberData.rolle !== 'Vorstand' && memberData.rolle !== 'Admin') {
                     throw new Error("Keine Berechtigung für den Admin-Bereich.");
                 }
-
-                // Abgleich mit der Sicherheitsantwort als Passwortersatz
                 if (memberData.sicherheitsantwort && memberData.sicherheitsantwort !== passwordInput) {
-                    throw new Error("Falsche Sicherheitsantwort / Falsches Passwort.");
+                    throw new Error("Falsche Sicherheitsantwort.");
                 }
 
-                // Erfolgreich eingeloggt
                 localStorage.setItem('kray_admin_logged_in', 'true');
                 localStorage.setItem('kray_admin_email', memberData.email);
-                localStorage.setItem('kray_admin_name', memberData.vorname + ' ' + (memberData.nachname || ''));
-
                 checkSession();
 
             } catch (err) {
@@ -271,39 +450,34 @@
             }
         });
 
-        // Logout verarbeiten
+        // LOGOUT
         logoutBtn.addEventListener('click', function() {
             localStorage.removeItem('kray_admin_logged_in');
             localStorage.removeItem('kray_admin_email');
-            localStorage.removeItem('kray_admin_name');
             checkSession();
         });
 
-        // Beiträge für die Verwaltung laden
+        // BEITRÄGE LADEN
         async function loadManageNews() {
             try {
-                const { data: newsData, error } = await supabaseClient
-                    .from('aktuelles')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
+                const { data: newsData, error } = await supabaseClient.from('aktuelles').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
 
                 if (!newsData || newsData.length === 0) {
-                    manageList.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin: 0;">Es sind derzeit keine Beiträge vorhanden.</p>`;
+                    manageList.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin: 0;">Keine Beiträge vorhanden.</p>`;
                     return;
                 }
 
                 let html = '';
                 newsData.forEach(item => {
                     const dateObj = new Date(item.created_at);
-                    const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const formattedDate = dateObj.toLocaleDateString('de-DE');
 
                     html += `
-                        <div class="news-manage-item">
-                            <div class="news-manage-info">
-                                <div class="news-manage-title">${item.titel}</div>
-                                <div class="news-manage-date"><i class="fa-solid fa-calendar-days"></i> ${formattedDate} | Autor: ${item.autor}</div>
+                        <div class="manage-item">
+                            <div class="manage-info">
+                                <div class="manage-title">${item.titel}</div>
+                                <div class="manage-subtitle"><i class="fa-solid fa-calendar-days"></i> ${formattedDate} | Autor: ${item.autor}</div>
                             </div>
                             <button onclick="deleteNews('${item.id}')" class="btn-delete-item">
                                 <i class="fa-solid fa-trash-can"></i> Löschen
@@ -311,31 +485,24 @@
                         </div>
                     `;
                 });
-
                 manageList.innerHTML = html;
             } catch (err) {
-                manageList.innerHTML = `<p style="color: #991b1b; text-align: center; margin: 0;">Fehler beim Laden der Beitragsliste.</p>`;
+                manageList.innerHTML = `<p style="color: #991b1b; text-align: center; margin: 0;">Fehler beim Laden der Beiträge.</p>`;
             }
         }
 
-        // Beitrag löschen
+        // BEITRAG LÖSCHEN
         window.deleteNews = async function(id) {
-            if (!confirm("Möchtest du diesen Beitrag wirklich unwiderruflich löschen?")) return;
-
+            if (!confirm("Beitrag wirklich unwiderruflich löschen?")) return;
             manageAlert.classList.add('hidden');
 
             try {
-                const { error } = await supabaseClient
-                    .from('aktuelles')
-                    .delete()
-                    .eq('id', id);
-
+                const { error } = await supabaseClient.from('aktuelles').delete().eq('id', id);
                 if (error) throw error;
 
                 manageAlert.textContent = 'Beitrag erfolgreich gelöscht!';
                 manageAlert.className = 'alert alert-success';
                 manageAlert.classList.remove('hidden');
-
                 loadManageNews();
             } catch (err) {
                 manageAlert.textContent = 'Fehler beim Löschen: ' + err.message;
@@ -344,30 +511,23 @@
             }
         };
 
-        // Impressum in den Admin-Feldern laden (aus JSON)
+        // IMPRESSUM LADEN
         async function loadImpressumAdmin() {
             try {
-                const { data, error } = await supabaseClient
-                    .from('site_content')
-                    .select('*')
-                    .eq('id', 'impressum')
-                    .single();
-
-                if (data) {
+                const { data } = await supabaseClient.from('site_content').select('*').eq('id', 'impressum').single();
+                if (data && data.daten) {
                     document.getElementById('impTitel').value = data.titel || 'Impressum';
-                    if (data.daten) {
-                        document.getElementById('impAllgemein').value = data.daten.allgemein || '';
-                        document.getElementById('impKontakt').value = data.daten.kontakt || '';
-                        document.getElementById('impMstv').value = data.daten.mstv || '';
-                        document.getElementById('impRedaktion').value = data.daten.redaktion || '';
-                        document.getElementById('impTechnik').value = data.daten.technik || '';
-                        document.getElementById('impSchlichtung').value = data.daten.schlichtung || '';
-                    }
+                    document.getElementById('impAllgemein').value = data.daten.allgemein || '';
+                    document.getElementById('impKontakt').value = data.daten.kontakt || '';
+                    document.getElementById('impMstv').value = data.daten.mstv || '';
+                    document.getElementById('impRedaktion').value = data.daten.redaktion || '';
+                    document.getElementById('impTechnik').value = data.daten.technik || '';
+                    document.getElementById('impSchlichtung').value = data.daten.schlichtung || '';
                 }
             } catch (err) { console.log(err); }
         }
 
-        // Impressum abspeichern (als JSON)
+        // IMPRESSUM SPEICHERN
         document.getElementById('impressumForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('impressumBtn');
@@ -388,11 +548,7 @@
             };
 
             try {
-                const { error } = await supabaseClient
-                    .from('site_content')
-                    .update({ titel: titel, daten: datenObj, updated_at: new Date() })
-                    .eq('id', 'impressum');
-
+                const { error } = await supabaseClient.from('site_content').update({ titel, daten: datenObj, updated_at: new Date() }).eq('id', 'impressum');
                 if (error) throw error;
 
                 alertBox.textContent = 'Impressum erfolgreich aktualisiert!';
@@ -408,7 +564,7 @@
             }
         });
 
-        // Neuen Beitrag absenden
+        // BEITRAG ERSTELLEN
         newsForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             submitBtn.disabled = true;
@@ -426,34 +582,21 @@
                 if (imageFile) {
                     const fileExt = imageFile.name.split('.').pop();
                     const fileName = `${Date.now()}.${fileExt}`;
-                    const filePath = `${fileName}`;
-
-                    const { error: uploadError } = await supabaseClient.storage
-                        .from('news-images')
-                        .upload(filePath, imageFile);
-
+                    
+                    const { error: uploadError } = await supabaseClient.storage.from('news-images').upload(fileName, imageFile);
                     if (uploadError) throw uploadError;
 
-                    const { data: publicURLData } = supabaseClient.storage
-                        .from('news-images')
-                        .getPublicUrl(filePath);
-
+                    const { data: publicURLData } = supabaseClient.storage.from('news-images').getPublicUrl(fileName);
                     imageUrl = publicURLData.publicUrl;
                 }
 
-                const { error: insertError } = await supabaseClient
-                    .from('aktuelles')
-                    .insert([
-                        { titel: title, inhalt: content, autor: author, bild_url: imageUrl }
-                    ]);
-
+                const { error: insertError } = await supabaseClient.from('aktuelles').insert([{ titel: title, inhalt: content, autor: author, bild_url: imageUrl }]);
                 if (insertError) throw insertError;
 
                 formAlert.textContent = 'Beitrag erfolgreich veröffentlicht!';
                 formAlert.className = 'alert alert-success';
                 formAlert.classList.remove('hidden');
                 newsForm.reset();
-
                 loadManageNews();
 
             } catch (err) {
