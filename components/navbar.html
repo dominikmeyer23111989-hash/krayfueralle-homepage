@@ -1,5 +1,5 @@
 <nav class="navbar">
-    <div class="nav-container">
+    <div class="container nav-container">
         <!-- Logo / Vereinsname -->
         <a href="index.html" class="nav-logo">
             <i class="fa-solid fa-heart-hands-together logo-icon"></i>
@@ -161,21 +161,22 @@
 </style>
 
 <script>
-    // Universeller Event-Listener für das mobile Burger-Menü (funktioniert auch nach dem dynamischen Include)
-    document.addEventListener('click', function(event) {
-        const toggleBtn = event.target.closest('#navToggle');
-        const navMenu = document.getElementById('navMenu');
+    // Globaler Event-Listener für das mobile Menü (greift dokumentweit)
+    if (!window.krayNavInitialized) {
+        window.krayNavInitialized = true;
+        document.addEventListener('click', function(e) {
+            const toggleBtn = e.target.closest('#navToggle');
+            const navMenu = document.getElementById('navMenu');
 
-        if (!navMenu) return;
+            if (!navMenu) return;
 
-        // Wenn auf den Burger-Button (oder das Icon darin) geklickt wird
-        if (toggleBtn) {
-            event.stopPropagation();
-            navMenu.classList.toggle('active');
-        } 
-        // Wenn man außerhalb des Menüs klickt, während es offen ist -> Menü schließen
-        else if (navMenu.classList.contains('active') && !navMenu.contains(event.target)) {
-            navMenu.classList.remove('active');
-        }
-    });
+            if (toggleBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                navMenu.classList.toggle('active');
+            } else if (navMenu.classList.contains('active') && !navMenu.contains(e.target)) {
+                navMenu.classList.remove('active');
+            }
+        });
+    }
 </script>
