@@ -198,7 +198,7 @@
             </div>
         </section>
 
-        <!-- Sponsoren & Partner Sektion (Neu & Dynamisch) -->
+        <!-- Sponsoren & Partner Sektion -->
         <section class="section" id="sponsoren-section">
             <div class="section-header">
                 <h2 class="section-title"><i class="fa-solid fa-handshake" style="color: var(--primary-color);"></i> Unsere Sponsoren & Partner</h2>
@@ -236,16 +236,102 @@
     <!-- Footer Modul -->
     <div data-include="components/footer.html"></div>
 
+    <!-- Chatbot Floating Button & Widget -->
+    <div id="chatWidgetBtn" onclick="toggleChatWidget()" style="position: fixed; bottom: 20px; right: 20px; background: #2563eb; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+        <i class="fa-solid fa-comments"></i>
+    </div>
+
+    <div id="chatWidgetWindow" style="display: none; position: fixed; bottom: 90px; right: 20px; width: 350px; height: 480px; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; flex-direction: column; overflow: hidden; font-family: 'Inter', sans-serif;">
+        <!-- Chat Header -->
+        <div style="background: #1e293b; color: #ffffff; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.95rem;">
+                <i class="fa-solid fa-robot" style="color: #2563eb;"></i> KrayFürAlle Assistent
+            </div>
+            <button onclick="toggleChatWidget()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.1rem;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Chat Messages Container -->
+        <div id="chatMessages" style="flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; background: #f8fafc;">
+            <div style="background: #e2e8f0; color: #0f172a; padding: 0.6rem 0.8rem; border-radius: 12px; max-width: 85%; align-self: flex-start; line-height: 1.4;">
+                Hallo! 👋 Ich bin der digitale Assistent von KrayFürAlle e.V. Wie kann ich dir helfen?
+            </div>
+        </div>
+
+        <!-- Chat Input Form -->
+        <form id="chatForm" onsubmit="handleChatSubmit(event)" style="display: flex; padding: 0.75rem; background: #ffffff; border-top: 1px solid #e2e8f0; gap: 0.5rem;">
+            <input type="text" id="chatInput" placeholder="Frage stellen..." style="flex: 1; padding: 0.6rem 0.8rem; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 0.9rem;">
+            <button type="submit" style="background: #2563eb; color: #ffffff; border: none; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600;"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+    </div>
+
     <!-- Supabase SDK & Navigation Include -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/include.js"></script>
 
-    <!-- Script: Lädt Aktuelles, Termine und Sponsoren aus Supabase -->
+    <!-- Script: Lädt Aktuelles, Termine und Sponsoren aus Supabase & Chatbot-Logik -->
     <script>
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
         
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- Chatbot Toggle & Logik ---
+        function toggleChatWidget() {
+            const win = document.getElementById('chatWidgetWindow');
+            win.style.display = (win.style.display === 'none' || win.style.display === '') ? 'flex' : 'none';
+        }
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const container = document.getElementById('chatMessages');
+
+            // 1. Nutzernachricht anzeigen
+            container.innerHTML += `
+                <div style="background: #2563eb; color: #ffffff; padding: 0.6rem 0.8rem; border-radius: 12px; max-width: 85%; align-self: flex-end; line-height: 1.4;">
+                    ${msg}
+                </div>
+            `;
+            input.value = '';
+            container.scrollTop = container.scrollHeight;
+
+            // 2. Antwort berechnen / aus Supabase holen
+            let reply = "Das habe ich leider nicht ganz verstanden. 🤔 Frage mich gerne nach **Terminen**, **Aktuellem**, der **Mitgliedschaft** oder unseren **Sponsoren**!";
+            const query = msg.toLowerCase();
+
+            if (query.includes('termin') || query.includes('veranstaltung') || query.includes('wann')) {
+                const { data: events } = await supabaseClient.from('events').select('name, start_datum').limit(3);
+                if (events && events.length > 0) {
+                    reply = "📅 <b>Anstehende Termine:</b><br>" + events.map(e => `• ${e.name} (${e.start_datum || 'Demnächst'})`).join('<br>');
+                } else {
+                    reply = "Derzeit stehen keine Termine im Kalender.";
+                }
+            } else if (query.includes('news') || query.includes('aktuell') || query.includes('beitrag')) {
+                const { data: news } = await supabaseClient.from('aktuelles').select('titel').limit(3);
+                if (news && news.length > 0) {
+                    reply = "📰 <b>Neueste Beiträge:</b><br>" + news.map(n => `• ${n.titel}`).join('<br>');
+                } else {
+                    reply = "Aktuell gibt es keine neuen Beiträge.";
+                }
+            } else if (query.includes('mitglied') || query.includes('beitreten') || query.includes('antrag')) {
+                reply = "🤝 Du kannst deinen Mitgliedsantrag direkt oben im Menü unter <b>Mitglied werden</b> ausfüllen!";
+            } else if (query.includes('sponsor') || query.includes('partner')) {
+                reply = "⭐ Unsere Sponsoren findest du direkt unten auf der Startseite. Wir freuen uns über jede Unterstützung!";
+            }
+
+            // 3. Bot-Antwort anzeigen
+            setTimeout(() => {
+                container.innerHTML += `
+                    <div style="background: #e2e8f0; color: #0f172a; padding: 0.6rem 0.8rem; border-radius: 12px; max-width: 85%; align-self: flex-start; line-height: 1.4;">
+                        ${reply}
+                    </div>
+                `;
+                container.scrollTop = container.scrollHeight;
+            }, 300);
+        }
 
         document.addEventListener('DOMContentLoaded', async function() {
             // --- 1. AKTUELLES / NEWS LADEN ---
@@ -273,7 +359,7 @@
                         const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
                         
                         const imageElement = item.bild_url 
-                            ? `<div style="height: 160px; overflow: hidden; border-radius: 12px; margin-bottom: 1rem;"><img src="${item.bild_url}" alt="${item.titel}" style="width: 100%; height: 100%; object-fit: cover;"></div>` 
+                            ? `<div style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 1rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${item.bild_url}" alt="${item.titel}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>` 
                             : '';
 
                         newsHtml += `
