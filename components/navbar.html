@@ -161,15 +161,21 @@
 </style>
 
 <script>
-    // Burger-Menü Funktionalität für Mobilgeräte
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtn = document.getElementById('navToggle');
+    // Universeller Event-Listener für das mobile Burger-Menü (funktioniert auch nach dem dynamischen Include)
+    document.addEventListener('click', function(event) {
+        const toggleBtn = event.target.closest('#navToggle');
         const navMenu = document.getElementById('navMenu');
 
-        if (toggleBtn && navMenu) {
-            toggleBtn.addEventListener('click', function() {
-                navMenu.classList.toggle('active');
-            });
+        if (!navMenu) return;
+
+        // Wenn auf den Burger-Button (oder das Icon darin) geklickt wird
+        if (toggleBtn) {
+            event.stopPropagation();
+            navMenu.classList.toggle('active');
+        } 
+        // Wenn man außerhalb des Menüs klickt, während es offen ist -> Menü schließen
+        else if (navMenu.classList.contains('active') && !navMenu.contains(event.target)) {
+            navMenu.classList.remove('active');
         }
     });
 </script>
