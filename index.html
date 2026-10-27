@@ -150,17 +150,18 @@
     <!-- Main Content -->
     <main class="container">
         
-        <!-- Schwerpunkte / Angebote -->
+        <!-- Schwerpunkte / Angebote (Dynamisch aus Supabase) -->
         <section class="section">
             <div class="section-header">
                 <h2 class="section-title">Was wir bieten</h2>
-                <p class="section-subtitle">Informationen zu unseren Projekten und Vereinsangeboten folgen in Kürze.</p>
+                <p class="section-subtitle">Projekte, Initiativen und Vereinsangebote vor Ort in Essen-Kray.</p>
             </div>
 
-            <div class="placeholder-box">
-                <i class="fa-solid fa-square-plus" style="font-size: 2.5rem; color: #94a3b8; margin-bottom: 1rem; display: block;"></i>
-                <h3 style="margin: 0 0 0.5rem 0; color: var(--text-main);">Angebote & Initiativen in Vorbereitung</h3>
-                <p style="margin: 0; max-width: 550px; margin: 0 auto;">Hier werden in Kürze die konkreten Schwerpunkte und Angebote unseres Vereins präsentiert.</p>
+            <div id="angeboteGrid" class="grid-3">
+                <div class="card" style="text-align: center; color: var(--text-muted); padding: 3rem; grid-column: 1 / -1;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <p>Lade Angebote...</p>
+                </div>
             </div>
         </section>
 
@@ -268,7 +269,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/include.js"></script>
 
-    <!-- Script: Lädt Aktuelles, Termine und Sponsoren aus Supabase & Chatbot-Logik -->
+    <!-- Script: Lädt Angebote, Aktuelles, Termine und Sponsoren aus Supabase & Chatbot-Logik -->
     <script>
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
@@ -289,7 +290,6 @@
 
             const container = document.getElementById('chatMessages');
 
-            // 1. Nutzernachricht anzeigen
             container.innerHTML += `
                 <div style="background: #2563eb; color: #ffffff; padding: 0.6rem 0.8rem; border-radius: 12px; max-width: 85%; align-self: flex-end; line-height: 1.4;">
                     ${msg}
@@ -298,7 +298,6 @@
             input.value = '';
             container.scrollTop = container.scrollHeight;
 
-            // 2. Antwort berechnen / aus Supabase holen
             let reply = "Das habe ich leider nicht ganz verstanden. 🤔 Frage mich gerne nach **Terminen**, **Aktuellem**, der **Mitgliedschaft** oder unseren **Sponsoren**!";
             const query = msg.toLowerCase();
 
@@ -322,7 +321,6 @@
                 reply = "⭐ Unsere Sponsoren findest du direkt unten auf der Startseite. Wir freuen uns über jede Unterstützung!";
             }
 
-            // 3. Bot-Antwort anzeigen
             setTimeout(() => {
                 container.innerHTML += `
                     <div style="background: #e2e8f0; color: #0f172a; padding: 0.6rem 0.8rem; border-radius: 12px; max-width: 85%; align-self: flex-start; line-height: 1.4;">
@@ -334,6 +332,40 @@
         }
 
         document.addEventListener('DOMContentLoaded', async function() {
+            // --- 0. ANGEBOTE LADEN ---
+            const angeboteGrid = document.getElementById('angeboteGrid');
+            try {
+                const { data: angeboteData, error: angError } = await supabaseClient
+                    .from('angebote')
+                    .select('*')
+                    .order('sortierung', { ascending: true });
+
+                if (angError || !angeboteData || angeboteData.length === 0) {
+                    angeboteGrid.innerHTML = `
+                        <div class="placeholder-box" style="grid-column: 1 / -1;">
+                            <i class="fa-solid fa-square-plus" style="font-size: 2.5rem; color: #94a3b8; margin-bottom: 1rem; display: block;"></i>
+                            <h3 style="margin: 0 0 0.5rem 0; color: var(--text-main);">Angebote & Initiativen in Vorbereitung</h3>
+                            <p style="margin: 0; max-width: 550px; margin: 0 auto;">Hier werden in Kürze die konkreten Schwerpunkte und Angebote unseres Vereins präsentiert.</p>
+                        </div>
+                    `;
+                } else {
+                    let angHtml = '';
+                    angeboteData.forEach(item => {
+                        const icon = item.icon_klasse || 'fa-solid fa-star';
+                        angHtml += `
+                            <div class="card">
+                                <div class="card-icon"><i class="${icon}"></i></div>
+                                <h3 class="card-title">${item.titel}</h3>
+                                <p class="card-text">${item.beschreibung}</p>
+                            </div>
+                        `;
+                    });
+                    angeboteGrid.innerHTML = angHtml;
+                }
+            } catch (err) {
+                console.error("Fehler beim Laden der Angebote:", err);
+            }
+
             // --- 1. AKTUELLES / NEWS LADEN ---
             const newsGrid = document.getElementById('newsGrid');
             try {
