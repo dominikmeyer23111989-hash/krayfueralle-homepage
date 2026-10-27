@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrayFürAlle e.V. – Klassische Ansicht (Beta)</title>
+    <link rel="icon" href="data:,">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+
+    <style>
+        /* Old-School / Klassisches Webdesign Styling */
+        :root {
+            --classic-blue: #003366;
+            --classic-dark: #111111;
+            --classic-bg: #f4f4f4;
+            --classic-border: #999999;
+            --classic-card-bg: #ffffff;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: var(--classic-bg);
+            color: var(--classic-dark);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        /* Hinweis-Banner für den Vorstand */
+        .beta-banner {
+            background-color: #ffcc00;
+            color: #333333;
+            text-align: center;
+            padding: 0.5rem;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #cc9900;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        /* Klassischer Seitenkopf / Layout-Boxen */
+        .classic-box {
+            background: var(--classic-card-bg);
+            border: 1px solid var(--classic-border);
+            margin-bottom: 20px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .classic-box-header {
+            background-color: var(--classic-blue);
+            color: #ffffff;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .classic-box-body {
+            padding: 15px;
+        }
+
+        /* 2-Spalten Layout für Old-School (Inhalt links, Sidebar rechts) */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* News & Angebote Styling */
+        .news-item {
+            border-bottom: 1px dotted var(--classic-border);
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+        }
+        .news-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .news-title {
+            font-weight: bold;
+            color: var(--classic-blue);
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+        }
+        .news-meta {
+            font-size: 0.8rem;
+            color: #666666;
+            margin-bottom: 6px;
+        }
+
+        /* Sponsoren Liste */
+        .sponsor-list {
+            list-style-type: square;
+            padding-left: 20px;
+            margin: 0;
+        }
+        .sponsor-list li {
+            margin-bottom: 6px;
+        }
+        .sponsor-link {
+            color: var(--classic-blue);
+            text-decoration: underline;
+        }
+
+        /* Tabelle für Angebote */
+        .classic-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+        .classic-table th, .classic-table td {
+            border: 1px solid var(--classic-border);
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+        .classic-table th {
+            background-color: #e5e5e5;
+            color: var(--classic-dark);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Vorstandskorrespondenz Hinweis -->
+    <div class="beta-banner">
+        <i class="fa-solid fa-triangle-exclamation"></i> VORSTANDS-VERGLEICH: Klassisches Layout ("Old School") im Testbetrieb. Greift auf die live Supabase-Datenbank zu.
+    </div>
+
+    <!-- Navigation wird via include.js geladen -->
+    <div data-include="components/navbar.html"></div>
+
+    <div class="container">
+        
+        <!-- Willkommensbox -->
+        <div class="classic-box">
+            <div class="classic-box-header">
+                <i class="fa-solid fa-house"></i> Herzlich willkommen bei KrayFürAlle e.V.
+            </div>
+            <div class="classic-box-body">
+                <p>Wir begrüßen Sie auf der Informationsplattform unseres Vereins. Hier finden Sie alle aktuellen Termine, Berichte aus der Nachbarschaft und unsere vielfältigen Angebote für den Stadtteil.</p>
+                <p style="margin-bottom: 0;"><em>Nutzen Sie das Menü oben, um durch die Rubriken zu navigieren.</em></p>
+            </div>
+        </div>
+
+        <!-- Hauptbereich im 2-Spalten-Layout -->
+        <div class="layout-grid">
+            
+            <!-- Linke Spalte: Aktuelles & News -->
+            <div>
+                <div class="classic-box">
+                    <div class="classic-box-header">
+                        <i class="fa-solid fa-bullhorn"></i> Aktuelle Bekanntmachungen & Berichte
+                    </div>
+                    <div class="classic-box-body" id="newsContainer">
+                        <p style="color: #666;">Lade Beiträge aus der Datenbank...</p>
+                    </div>
+                </div>
+
+                <div class="classic-box">
+                    <div class="classic-box-header">
+                        <i class="fa-solid fa-clipboard-list"></i> Was wir bieten (Übersicht)
+                    </div>
+                    <div class="classic-box-body">
+                        <div id="angeboteContainer">
+                            <p style="color: #666;">Lade Angebote...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rechte Spalte: Sidebar (Sponsoren & Kontakt) -->
+            <div>
+                <div class="classic-box">
+                    <div class="classic-box-header">
+                        <i class="fa-solid fa-handshake"></i> Unsere Partner & Sponsoren
+                    </div>
+                    <div class="classic-box-body">
+                        <ul class="sponsor-list" id="sponsorenContainer">
+                            <li>Lade Sponsoren...</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="classic-box">
+                    <div class="classic-box-header">
+                        <i class="fa-solid fa-envelope"></i> Schnellkontakt
+                    </div>
+                    <div class="classic-box-body" style="font-size: 0.9rem;">
+                        <p><strong>KrayFürAlle e.V.</strong><br>Essen-Kray</p>
+                        <p>E-Mail: <a href="mailto:kontakt@krayfueralle.de" class="sponsor-link">kontakt@krayfueralle.de</a></p>
+                        <a href="contact.html" style="background: var(--classic-blue); color: #fff; padding: 6px 12px; text-decoration: none; display: inline-block; font-size: 0.85rem; font-weight: bold;">Zum Kontaktformular</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Supabase SDK & Lade-Logik -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/include.js"></script>
+
+    <script>
+        const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 1. News / Aktuelles laden
+        async function loadOldSchoolNews() {
+            const container = document.getElementById('newsContainer');
+            try {
+                const { data, error } = await supabaseClient.from('aktuelles').select('*').order('created_at', { ascending: false });
+                if (error || !data || data.length === 0) {
+                    container.innerHTML = '<p>Keine Beiträge vorhanden.</p>';
+                    return;
+                }
+
+                let html = '';
+                data.forEach(item => {
+                    const dateStr = new Date(item.created_at).toLocaleDateString('de-DE');
+                    html += `
+                        <div class="news-item">
+                            <div class="news-title">${item.titel}</div>
+                            <div class="news-meta">Veröffentlicht am ${dateStr} von ${item.autor || 'Redaktion'}</div>
+                            <div style="font-size: 0.95rem; white-space: pre-line;">${item.inhalt}</div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = '<p style="color: red;">Fehler beim Laden der News.</p>';
+            }
+        }
+
+        // 2. Sponsoren laden
+        async function loadOldSchoolSponsoren() {
+            const container = document.getElementById('sponsorenContainer');
+            try {
+                const { data } = await supabaseClient.from('sponsoren').select('*');
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<li>Keine Partner eingetragen.</li>';
+                    return;
+                }
+                let html = '';
+                data.forEach(sp => {
+                    if (sp.website_url) {
+                        html += `<li><a href="${sp.website_url}" target="_blank" class="sponsor-link">${sp.name}</a> (${sp.kategorie || 'Partner'})</li>`;
+                    } else {
+                        html += `<li>${sp.name} (${sp.kategorie || 'Partner'})</li>`;
+                    }
+                });
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = '<li>Fehler beim Laden.</li>';
+            }
+        }
+
+        // 3. Angebote laden
+        async function loadOldSchoolAngebote() {
+            const container = document.getElementById('angeboteContainer');
+            try {
+                const { data } = await supabaseClient.from('angebote').select('*');
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p>Keine Angebote eingetragen.</p>';
+                    return;
+                }
+                let html = '<table class="classic-table"><tr><th>Angebot</th><th>Beschreibung</th></tr>';
+                data.forEach(ang => {
+                    html += `<tr><td><strong><i class="${ang.icon_klasse || 'fa-solid fa-check'}"></i> ${ang.titel}</strong></td><td>${ang.beschreibung}</td></tr>`;
+                });
+                html += '</table>';
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = '<p>Fehler beim Laden der Angebote.</p>';
+            }
+        }
+
+        // Beim Laden ausführen
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOldSchoolNews();
+            loadOldSchoolSponsoren();
+            loadOldSchoolAngebote();
+        });
+    </script>
+</body>
+</html>
