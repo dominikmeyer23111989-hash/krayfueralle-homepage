@@ -1,4 +1,4 @@
-// Lädt HTML-Komponenten automatisch in Elemente mit data-include und führt enthaltene Skripte aus
+// 1. HTML-Komponenten automatisch in Elemente mit data-include laden
 document.addEventListener("DOMContentLoaded", function() {
     const includes = document.querySelectorAll('[data-include]');
     includes.forEach(el => {
@@ -10,18 +10,24 @@ document.addEventListener("DOMContentLoaded", function() {
             })
             .then(data => {
                 el.innerHTML = data;
-
-                // Skripte extrahieren und ausführen, da innerHTML sie standardmäßig blockiert
-                const scripts = el.querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => {
-                        newScript.setAttribute(attr.name, attr.value);
-                    });
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
             })
             .catch(error => console.error(error));
     });
+});
+
+// 2. Globaler Event-Listener für das mobile Burger-Menü
+// Da dieser Code in der festen include.js liegt, wird er vom Browser problemlos ausgeführt
+document.addEventListener('click', function(e) {
+    const toggleBtn = e.target.closest('#navToggle');
+    const navMenu = document.getElementById('navMenu');
+
+    if (!navMenu) return;
+
+    if (toggleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        navMenu.classList.toggle('active');
+    } else if (navMenu.classList.contains('active') && !navMenu.contains(e.target)) {
+        navMenu.classList.remove('active');
+    }
 });
