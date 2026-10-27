@@ -55,7 +55,7 @@
 
         .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         
-        /* Liste der bestehenden Beiträge & Sponsoren */
+        /* Listen für Einträge */
         .manage-list { display: flex; flex-direction: column; gap: 1rem; }
         .manage-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; gap: 1rem; }
         .manage-info { overflow: hidden; }
@@ -105,21 +105,16 @@
                 <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Aktuelle Übersicht der Vereinsdaten und veröffentlichten Inhalte.</p>
                 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <!-- Stat 1: Aktive Mitglieder -->
                     <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
                         <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Aktive Mitglieder</div>
                         <div id="statMembersCount" style="font-size: 2.2rem; font-weight: 800; color: var(--primary-color); margin-top: 0.2rem;">--</div>
                         <div id="statMembersDetail" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Lade...</div>
                     </div>
-
-                    <!-- Stat 2: Veröffentlichte Beiträge -->
                     <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
                         <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Veröffentlichte Artikel</div>
                         <div id="statNewsCount" style="font-size: 2.2rem; font-weight: 800; color: #10b981; margin-top: 0.2rem;">--</div>
                         <div id="statNewsLatest" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Lade...</div>
                     </div>
-
-                    <!-- Stat 3: Sponsoren & Partner -->
                     <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
                         <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Sponsoren & Partner</div>
                         <div id="statSponsorenCount" style="font-size: 2.2rem; font-weight: 800; color: #8b5cf6; margin-top: 0.2rem;">--</div>
@@ -128,14 +123,13 @@
                 </div>
             </div>
 
-            <!-- Sponsoren & Partner verwalten (Neu) -->
+            <!-- Sponsoren & Partner verwalten -->
             <div class="card">
                 <h2><i class="fa-solid fa-handshake" style="color: var(--primary-color);"></i> Sponsoren & Partner verwalten</h2>
                 <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Füge Logos, Links und Partner-Kategorien für die Startseite hinzu.</p>
 
                 <div id="sponsorAlert" class="alert hidden"></div>
 
-                <!-- Formular neuen Sponsor anlegen -->
                 <form id="sponsorForm" style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
                     <h3 style="margin-top: 0; font-size: 1.05rem; margin-bottom: 1rem;">Neuen Sponsor anlegen</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
@@ -164,9 +158,38 @@
                     <button type="submit" id="spSubmitBtn" class="btn btn-primary" style="margin-top: 1.25rem;"><i class="fa-solid fa-plus"></i> Sponsor hinzufügen</button>
                 </form>
 
-                <!-- Liste bestehender Sponsoren -->
                 <div id="sponsorenAdminList" class="manage-list">
                     <p style="color: var(--text-muted); text-align: center;">Lade Sponsoren...</p>
+                </div>
+            </div>
+
+            <!-- "Was wir bieten" / Angebote verwalten -->
+            <div class="card">
+                <h2><i class="fa-solid fa-square-plus" style="color: var(--primary-color);"></i> "Was wir bieten" verwalten</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Füge Vereinsangebote hinzu oder entferne nicht mehr aktive Schwerpunkte.</p>
+
+                <div id="angeboteAlert" class="alert hidden"></div>
+
+                <form id="angeboteForm" style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h3 style="margin-top: 0; font-size: 1.05rem; margin-bottom: 1rem;">Neues Angebot anlegen</h3>
+                    <div class="form-group">
+                        <label for="angTitel">Titel des Angebots *</label>
+                        <input type="text" id="angTitel" required placeholder="z. B. Nachbarschaftscafé">
+                    </div>
+                    <div class="form-group">
+                        <label for="angIcon">FontAwesome Icon Klasse</label>
+                        <input type="text" id="angIcon" placeholder="fa-solid fa-mug-hot" value="fa-solid fa-heart">
+                        <small style="color: var(--text-muted);">Beispiele: <code>fa-solid fa-users</code>, <code>fa-solid fa-hand-holding-heart</code>, <code>fa-solid fa-utensils</code></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="angBeschreibung">Beschreibung *</label>
+                        <textarea id="angBeschreibung" required placeholder="Kurze Beschreibung des Angebots..." style="min-height: 80px;"></textarea>
+                    </div>
+                    <button type="submit" id="angSubmitBtn" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Angebot hinzufügen</button>
+                </form>
+
+                <div id="angeboteAdminList" class="manage-list">
+                    <p style="color: var(--text-muted); text-align: center;">Lade Angebote...</p>
                 </div>
             </div>
 
@@ -286,6 +309,7 @@
                     adminCard.classList.remove('hidden');
                     loadInsights();
                     loadSponsorenAdmin();
+                    loadAngeboteAdmin();
                     loadManageNews();
                     loadImpressumAdmin();
                 } else {
@@ -302,7 +326,6 @@
         // 1. INSIGHTS / STATISTIKEN LADEN
         async function loadInsights() {
             try {
-                // Mitglieder-Anzahl
                 const { data: members } = await supabaseClient.from('mitglieder').select('status, hat_inventar_rechte, rolle, ist_gesperrt');
                 if (members) {
                     const activeMembers = members.filter(m => m.status === 'aktiv' && !m.ist_gesperrt).length;
@@ -311,7 +334,6 @@
                     document.getElementById('statMembersDetail').textContent = `${members.length} gesamt (${passiveMembers} passiv)`;
                 }
 
-                // Beiträge-Anzahl
                 const { data: news } = await supabaseClient.from('aktuelles').select('created_at').order('created_at', { ascending: false });
                 if (news) {
                     document.getElementById('statNewsCount').textContent = news.length;
@@ -361,7 +383,6 @@
             }
         }
 
-        // Sponsor erstellen
         document.getElementById('sponsorForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('spSubmitBtn');
@@ -395,7 +416,6 @@
             }
         });
 
-        // Sponsor löschen
         window.deleteSponsor = async function(id) {
             if (!confirm("Möchtest du diesen Sponsor wirklich löschen?")) return;
             const alertBox = document.getElementById('sponsorAlert');
@@ -413,6 +433,80 @@
                 alertBox.textContent = 'Fehler beim Löschen: ' + err.message;
                 alertBox.className = 'alert alert-error';
                 alertBox.classList.remove('hidden');
+            }
+        };
+
+        // 3. ANGEBOTE ("WAS WIR BIETEN") VERWALTUNG
+        async function loadAngeboteAdmin() {
+            const listContainer = document.getElementById('angeboteAdminList');
+            if (!listContainer) return;
+
+            try {
+                const { data: angebote, error } = await supabaseClient.from('angebote').select('*').order('created_at', { ascending: false });
+                
+                if (error || !angebote || angebote.length === 0) {
+                    listContainer.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin: 0;">Keine Angebote eingetragen.</p>`;
+                    return;
+                }
+
+                let html = '';
+                angebote.forEach(item => {
+                    html += `
+                        <div class="manage-item">
+                            <div class="manage-info">
+                                <div class="manage-title"><i class="${item.icon_klasse || 'fa-solid fa-star'}"></i> ${item.titel}</div>
+                                <div class="manage-subtitle">${item.beschreibung}</div>
+                            </div>
+                            <button onclick="deleteAngebot('${item.id}')" class="btn-delete-item">
+                                <i class="fa-solid fa-trash-can"></i> Löschen
+                            </button>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+            } catch (err) {
+                listContainer.innerHTML = `<p style="color: #991b1b; text-align: center; margin: 0;">Fehler beim Laden der Angebote.</p>`;
+            }
+        }
+
+        const angeboteFormElem = document.getElementById('angeboteForm');
+        if (angeboteFormElem) {
+            angeboteFormElem.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = document.getElementById('angSubmitBtn');
+                const alertBox = document.getElementById('angeboteAlert');
+                btn.disabled = true;
+
+                const titel = document.getElementById('angTitel').value.trim();
+                const icon_klasse = document.getElementById('angIcon').value.trim() || 'fa-solid fa-star';
+                const beschreibung = document.getElementById('angBeschreibung').value.trim();
+
+                try {
+                    const { error } = await supabaseClient.from('angebote').insert([{ titel, icon_klasse, beschreibung }]);
+                    if (error) throw error;
+
+                    alertBox.textContent = 'Angebot erfolgreich hinzugefügt!';
+                    alertBox.className = 'alert alert-success';
+                    alertBox.classList.remove('hidden');
+                    angeboteFormElem.reset();
+                    loadAngeboteAdmin();
+                } catch (err) {
+                    alertBox.textContent = 'Fehler: ' + err.message;
+                    alertBox.className = 'alert alert-error';
+                    alertBox.classList.remove('hidden');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        window.deleteAngebot = async function(id) {
+            if (!confirm("Angebot wirklich löschen?")) return;
+            try {
+                await supabaseClient.from('angebote').delete().eq('id', id);
+                loadAngeboteAdmin();
+            } catch (err) {
+                console.error(err);
             }
         };
 
@@ -491,6 +585,52 @@
             }
         }
 
+        // NEUEN BEITRAG ERSTELLEN
+        newsForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wird veröffentlicht...';
+            formAlert.classList.add('hidden');
+
+            const title = document.getElementById('newsTitle').value;
+            const author = document.getElementById('newsAuthor').value;
+            const content = document.getElementById('newsContent').value;
+            const imageFile = document.getElementById('newsImage').files[0];
+
+            let imageUrl = '';
+
+            try {
+                if (imageFile) {
+                    const fileExt = imageFile.name.split('.').pop();
+                    const fileName = `${Date.now()}.${fileExt}`;
+                    
+                    const { error: uploadError } = await supabaseClient.storage.from('news-images').upload(fileName, imageFile);
+                    if (uploadError) throw uploadError;
+
+                    const { data: publicURLData } = supabaseClient.storage.from('news-images').getPublicUrl(fileName);
+                    imageUrl = publicURLData.publicUrl;
+                }
+
+                const { error: insertError } = await supabaseClient.from('aktuelles').insert([{ titel: title, inhalt: content, autor: author, bild_url: imageUrl }]);
+                if (insertError) throw insertError;
+
+                formAlert.textContent = 'Beitrag erfolgreich veröffentlicht!';
+                formAlert.className = 'alert alert-success';
+                formAlert.classList.remove('hidden');
+                newsForm.reset();
+                loadManageNews();
+                loadInsights();
+
+            } catch (err) {
+                formAlert.textContent = 'Fehler beim Veröffentlichen: ' + err.message;
+                formAlert.className = 'alert alert-error';
+                formAlert.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Beitrag veröffentlichen';
+            }
+        });
+
         // BEITRAG LÖSCHEN
         window.deleteNews = async function(id) {
             if (!confirm("Beitrag wirklich unwiderruflich löschen?")) return;
@@ -504,6 +644,7 @@
                 manageAlert.className = 'alert alert-success';
                 manageAlert.classList.remove('hidden');
                 loadManageNews();
+                loadInsights();
             } catch (err) {
                 manageAlert.textContent = 'Fehler beim Löschen: ' + err.message;
                 manageAlert.className = 'alert alert-error';
@@ -561,51 +702,6 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Impressum speichern';
-            }
-        });
-
-        // BEITRAG ERSTELLEN
-        newsForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wird veröffentlicht...';
-            formAlert.classList.add('hidden');
-
-            const title = document.getElementById('newsTitle').value;
-            const author = document.getElementById('newsAuthor').value;
-            const content = document.getElementById('newsContent').value;
-            const imageFile = document.getElementById('newsImage').files[0];
-
-            let imageUrl = '';
-
-            try {
-                if (imageFile) {
-                    const fileExt = imageFile.name.split('.').pop();
-                    const fileName = `${Date.now()}.${fileExt}`;
-                    
-                    const { error: uploadError } = await supabaseClient.storage.from('news-images').upload(fileName, imageFile);
-                    if (uploadError) throw uploadError;
-
-                    const { data: publicURLData } = supabaseClient.storage.from('news-images').getPublicUrl(fileName);
-                    imageUrl = publicURLData.publicUrl;
-                }
-
-                const { error: insertError } = await supabaseClient.from('aktuelles').insert([{ titel: title, inhalt: content, autor: author, bild_url: imageUrl }]);
-                if (insertError) throw insertError;
-
-                formAlert.textContent = 'Beitrag erfolgreich veröffentlicht!';
-                formAlert.className = 'alert alert-success';
-                formAlert.classList.remove('hidden');
-                newsForm.reset();
-                loadManageNews();
-
-            } catch (err) {
-                formAlert.textContent = 'Fehler beim Veröffentlichen: ' + err.message;
-                formAlert.className = 'alert alert-error';
-                formAlert.classList.remove('hidden');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Beitrag veröffentlichen';
             }
         });
     </script>
