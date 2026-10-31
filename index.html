@@ -276,6 +276,18 @@
         
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // --- Automatischer Seitenaufruf-Tracker ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof supabaseClient !== 'undefined') {
+                supabaseClient
+                    .from('seitenaufrufe')
+                    .insert([{ pfad: window.location.pathname }])
+                    .then(({ error }) => {
+                        if (error) console.error('Fehler beim Zählen des Seitenaufrufs:', error);
+                    });
+            }
+        });
+
         // --- Chatbot Toggle & Logik ---
         function toggleChatWidget() {
             const win = document.getElementById('chatWidgetWindow');
