@@ -292,6 +292,42 @@
                 </form>
             </div>
 
+            <!-- Datenschutzerklärung bearbeiten -->
+            <div class="card">
+                <h2><i class="fa-solid fa-user-shield" style="color: var(--primary-color);"></i> Datenschutzerklärung bearbeiten</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Passe hier die Abschnitte der Datenschutzerklärung an.</p>
+                
+                <div id="datenschutzAlert" class="alert hidden"></div>
+
+                <form id="datenschutzForm">
+                    <div class="form-group">
+                        <label for="dsTitelInput">Seiten-Titel</label>
+                        <input type="text" id="dsTitelInput" required value="Datenschutzerklärung">
+                    </div>
+                    <div class="form-group">
+                        <label for="dsVerantwortlicher">1. Verantwortlicher</label>
+                        <textarea id="dsVerantwortlicher" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="dsErhebung">2. Datenerfassung & Server-Logfiles</label>
+                        <textarea id="dsErhebung" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="dsCookies">3. Cookies & Analyse-Tools</label>
+                        <textarea id="dsCookies" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="dsRechte">4. Ihre Rechte</label>
+                        <textarea id="dsRechte" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="dsKontakt">5. Ansprechpartner / Kontakt</label>
+                        <textarea id="dsKontakt" required></textarea>
+                    </div>
+                    <button type="submit" id="datenschutzBtn" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Datenschutzerklärung speichern</button>
+                </form>
+            </div>
+
         </div>
         
         <div style="text-align: center; margin-top: 2rem;">
@@ -330,7 +366,7 @@
                     loadSponsorenAdmin();
                     loadAngeboteAdmin();
                     loadManageNews();
-                    loadImpressumAdmin();
+                    loadDatenschutzAdmin();
                 } else {
                     loginCard.classList.remove('hidden');
                     adminCard.classList.add('hidden');
@@ -659,8 +695,71 @@
             }
         };
 
-        async function loadImpressumAdmin() {
-            // Platzhalter
+        // DATENSCHUTZ LADEN UND SPEICHERN
+        async function loadDatenschutzAdmin() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('site_content')
+                    .select('*')
+                    .eq('id', 'datenschutz')
+                    .single();
+
+                if (error || !data) return;
+
+                if (data.titel) {
+                    document.getElementById('dsTitelInput').value = data.titel;
+                }
+
+                const d = data.daten || {};
+                document.getElementById('dsVerantwortlicher').value = d.verantwortlicher || '';
+                document.getElementById('dsErhebung').value = d.erhebung || '';
+                document.getElementById('dsCookies').value = d.cookies || '';
+                document.getElementById('dsRechte').value = d.rechte || '';
+                document.getElementById('dsKontakt').value = d.kontakt || '';
+
+            } catch (err) {
+                console.error("Fehler beim Laden des Datenschutzes:", err);
+            }
+        }
+
+        const datenschutzForm = document.getElementById('datenschutzForm');
+        if (datenschutzForm) {
+            datenschutzForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = document.getElementById('datenschutzBtn');
+                const alertBox = document.getElementById('datenschutzAlert');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Speichere...';
+                alertBox.classList.add('hidden');
+
+                const titel = document.getElementById('dsTitelInput').value.trim();
+                const daten = {
+                    verantwortlicher: document.getElementById('dsVerantwortlicher').value.trim(),
+                    erhebung: document.getElementById('dsErhebung').value.trim(),
+                    cookies: document.getElementById('dsCookies').value.trim(),
+                    rechte: document.getElementById('dsRechte').value.trim(),
+                    kontakt: document.getElementById('dsKontakt').value.trim()
+                };
+
+                try {
+                    const { error } = await supabaseClient
+                        .from('site_content')
+                        .upsert([{ id: 'datenschutz', titel, daten }]);
+
+                    if (error) throw error;
+
+                    alertBox.textContent = 'Datenschutzerklärung erfolgreich gespeichert!';
+                    alertBox.className = 'alert alert-success';
+                    alertBox.classList.remove('hidden');
+                } catch (err) {
+                    alertBox.textContent = 'Fehler beim Speichern: ' + err.message;
+                    alertBox.className = 'alert alert-error';
+                    alertBox.classList.remove('hidden');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Datenschutzerklärung speichern';
+                }
+            });
         }
     </script>
 </body>
