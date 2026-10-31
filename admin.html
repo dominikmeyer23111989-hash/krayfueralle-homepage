@@ -99,13 +99,13 @@
                 </div>
             </div>
 
-            <!-- Insights / Statistik Card (Ersetzt durch echte Seitenaufrufe) -->
+            <!-- Insights / Statistik Card -->
             <div class="card">
                 <h2><i class="fa-solid fa-chart-line" style="color: var(--primary-color);"></i> Insights & Plattform-Statistiken</h2>
                 <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Besucher-Aufrufe und veröffentlichte Inhalte im Überblick.</p>
                 
                 <!-- Seitenaufrufe nach Zeitraum -->
-                <div style="display: flex; gap: 15px; text-align: center; justify-content: space-around; margin-bottom: 1.5rem;">
+                <div style="display: flex; gap: 15px; text-align: center; justify-content: space-around; margin-bottom: 1rem;">
                     <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); flex: 1;">
                         <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Heute</div>
                         <div id="viewsToday" style="font-size: 2.2rem; font-weight: 800; color: var(--primary-color); margin-top: 0.2rem;">0</div>
@@ -118,6 +118,13 @@
                         <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Dieses Jahr</div>
                         <div id="viewsYear" style="font-size: 2.2rem; font-weight: 800; color: var(--primary-color); margin-top: 0.2rem;">0</div>
                     </div>
+                </div>
+
+                <!-- Zähler zurücksetzen Button -->
+                <div style="text-align: right; margin-bottom: 1.5rem;">
+                    <button onclick="resetVisitStats()" class="btn-delete-item" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                        <i class="fa-solid fa-rotate-left"></i> Zähler zurücksetzen
+                    </button>
                 </div>
 
                 <!-- Weitere Inhalt-Kennzahlen -->
@@ -338,7 +345,6 @@
         // 1. INSIGHTS / SEITENAUFRUFE LADEN
         async function loadInsights() {
             try {
-                // Seitenaufrufe auswerten
                 const { data: viewsData, error: viewsError } = await supabaseClient
                     .from('seitenaufrufe')
                     .select('created_at');
@@ -378,6 +384,32 @@
                 }
             } catch (err) { console.error("Insights Fehler:", err); }
         }
+
+        // ZÄHLER ZURÜCKSETZEN FUNKTION
+        window.resetVisitStats = async function() {
+            if (!confirm("Möchtest du die bisherigen Seitenaufrufe wirklich alle auf 0 zurücksetzen?")) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('seitenaufrufe')
+                    .delete()
+                    .neq('id', 0); // Löscht alle Zeilen
+
+                if (error) throw error;
+
+                alert("Der Besucherzähler wurde erfolgreich zurückgesetzt!");
+                
+                // Sofort in der Ansicht auf 0 setzen
+                document.getElementById('viewsToday').textContent = '0';
+                document.getElementById('viewsMonth').textContent = '0';
+                document.getElementById('viewsYear').textContent = '0';
+
+            } catch (err) {
+                alert("Fehler beim Zurücksetzen: " + err.message);
+            }
+        };
 
         // 2. SPONSOREN VERWALTUNG
         async function loadSponsorenAdmin() {
@@ -627,9 +659,8 @@
             }
         };
 
-        // IMPRESSUM LADEN (Platzhalter / Basis)
         async function loadImpressumAdmin() {
-            // Falls ihr eine Impressums-Tabelle habt, kann sie hier geladen werden.
+            // Platzhalter
         }
     </script>
 </body>
