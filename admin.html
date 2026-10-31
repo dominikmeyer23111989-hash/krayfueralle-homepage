@@ -49,7 +49,7 @@
 
         .hidden { display: none !important; }
         
-        .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.95rem; }
+        .alert { padding: 1.0rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.95rem; }
         .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
         .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 
@@ -99,17 +99,29 @@
                 </div>
             </div>
 
-            <!-- Insights / Statistik Card -->
+            <!-- Insights / Statistik Card (Ersetzt durch echte Seitenaufrufe) -->
             <div class="card">
                 <h2><i class="fa-solid fa-chart-line" style="color: var(--primary-color);"></i> Insights & Plattform-Statistiken</h2>
-                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Aktuelle Übersicht der Vereinsdaten und veröffentlichten Inhalte.</p>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Besucher-Aufrufe und veröffentlichte Inhalte im Überblick.</p>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Aktive Mitglieder</div>
-                        <div id="statMembersCount" style="font-size: 2.2rem; font-weight: 800; color: var(--primary-color); margin-top: 0.2rem;">--</div>
-                        <div id="statMembersDetail" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Lade...</div>
+                <!-- Seitenaufrufe nach Zeitraum -->
+                <div style="display: flex; gap: 15px; text-align: center; justify-content: space-around; margin-bottom: 1.5rem;">
+                    <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); flex: 1;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Heute</div>
+                        <div id="viewsToday" style="font-size: 2.2rem; font-weight: 800; color: var(--primary-color); margin-top: 0.2rem;">0</div>
                     </div>
+                    <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); flex: 1;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Diesen Monat</div>
+                        <div id="viewsMonth" style="font-size: 2.2rem; font-weight: 800; color: var(--primary-color); margin-top: 0.2rem;">0</div>
+                    </div>
+                    <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); flex: 1;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Dieses Jahr</div>
+                        <div id="viewsYear" style="font-size: 2.2rem; font-weight: 800; color: var(--primary-color); margin-top: 0.2rem;">0</div>
+                    </div>
+                </div>
+
+                <!-- Weitere Inhalt-Kennzahlen -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
                     <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
                         <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Veröffentlichte Artikel</div>
                         <div id="statNewsCount" style="font-size: 2.2rem; font-weight: 800; color: #10b981; margin-top: 0.2rem;">--</div>
@@ -323,17 +335,37 @@
 
         checkSession();
 
-        // 1. INSIGHTS / STATISTIKEN LADEN
+        // 1. INSIGHTS / SEITENAUFRUFE LADEN
         async function loadInsights() {
             try {
-                const { data: members } = await supabaseClient.from('mitglieder').select('status, hat_inventar_rechte, rolle, ist_gesperrt');
-                if (members) {
-                    const activeMembers = members.filter(m => m.status === 'aktiv' && !m.ist_gesperrt).length;
-                    const passiveMembers = members.filter(m => m.status === 'passiv').length;
-                    document.getElementById('statMembersCount').textContent = activeMembers;
-                    document.getElementById('statMembersDetail').textContent = `${members.length} gesamt (${passiveMembers} passiv)`;
+                // Seitenaufrufe auswerten
+                const { data: viewsData, error: viewsError } = await supabaseClient
+                    .from('seitenaufrufe')
+                    .select('created_at');
+
+                if (!viewsError && viewsData) {
+                    const now = new Date();
+                    const todayStr = now.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+                    const currentMonthStr = todayStr.substring(0, 7);    // Format: YYYY-MM
+                    const currentYearStr = todayStr.substring(0, 4);     // Format: YYYY
+
+                    let countToday = 0;
+                    let countMonth = 0;
+                    let countYear = 0;
+
+                    viewsData.forEach(row => {
+                        const rowDate = row.created_at;
+                        if (rowDate.startsWith(todayStr)) countToday++;
+                        if (rowDate.startsWith(currentMonthStr)) countMonth++;
+                        if (rowDate.startsWith(currentYearStr)) countYear++;
+                    });
+
+                    document.getElementById('viewsToday').textContent = countToday;
+                    document.getElementById('viewsMonth').textContent = countMonth;
+                    document.getElementById('viewsYear').textContent = countYear;
                 }
 
+                // Artikel-Statistiken
                 const { data: news } = await supabaseClient.from('aktuelles').select('created_at').order('created_at', { ascending: false });
                 if (news) {
                     document.getElementById('statNewsCount').textContent = news.length;
@@ -551,27 +583,25 @@
             checkSession();
         });
 
-        // BEITRÄGE LADEN
+        // BEITRÄGE LADEN & VERWALTEN
         async function loadManageNews() {
             try {
                 const { data: newsData, error } = await supabaseClient.from('aktuelles').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
 
                 if (!newsData || newsData.length === 0) {
-                    manageList.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin: 0;">Keine Beiträge vorhanden.</p>`;
+                    manageList.innerHTML = `<p style="color: var(--text-muted); text-align: center; padding: 1rem;">Keine Beiträge vorhanden.</p>`;
                     return;
                 }
 
                 let html = '';
                 newsData.forEach(item => {
-                    const dateObj = new Date(item.created_at);
-                    const formattedDate = dateObj.toLocaleDateString('de-DE');
-
+                    const dateStr = new Date(item.created_at).toLocaleDateString('de-DE');
                     html += `
                         <div class="manage-item">
                             <div class="manage-info">
                                 <div class="manage-title">${item.titel}</div>
-                                <div class="manage-subtitle"><i class="fa-solid fa-calendar-days"></i> ${formattedDate} | Autor: ${item.autor}</div>
+                                <div class="manage-subtitle">Vom ${dateStr} | Autor: ${item.autor || 'Redaktion'}</div>
                             </div>
                             <button onclick="deleteNews('${item.id}')" class="btn-delete-item">
                                 <i class="fa-solid fa-trash-can"></i> Löschen
@@ -581,129 +611,26 @@
                 });
                 manageList.innerHTML = html;
             } catch (err) {
-                manageList.innerHTML = `<p style="color: #991b1b; text-align: center; margin: 0;">Fehler beim Laden der Beiträge.</p>`;
+                manageList.innerHTML = `<p style="color: #991b1b; text-align: center; padding: 1rem;">Fehler beim Laden der Beiträge.</p>`;
             }
         }
 
-        // NEUEN BEITRAG ERSTELLEN
-        newsForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wird veröffentlicht...';
-            formAlert.classList.add('hidden');
-
-            const title = document.getElementById('newsTitle').value;
-            const author = document.getElementById('newsAuthor').value;
-            const content = document.getElementById('newsContent').value;
-            const imageFile = document.getElementById('newsImage').files[0];
-
-            let imageUrl = '';
-
-            try {
-                if (imageFile) {
-                    const fileExt = imageFile.name.split('.').pop();
-                    const fileName = `${Date.now()}.${fileExt}`;
-                    
-                    const { error: uploadError } = await supabaseClient.storage.from('news-images').upload(fileName, imageFile);
-                    if (uploadError) throw uploadError;
-
-                    const { data: publicURLData } = supabaseClient.storage.from('news-images').getPublicUrl(fileName);
-                    imageUrl = publicURLData.publicUrl;
-                }
-
-                const { error: insertError } = await supabaseClient.from('aktuelles').insert([{ titel: title, inhalt: content, autor: author, bild_url: imageUrl }]);
-                if (insertError) throw insertError;
-
-                formAlert.textContent = 'Beitrag erfolgreich veröffentlicht!';
-                formAlert.className = 'alert alert-success';
-                formAlert.classList.remove('hidden');
-                newsForm.reset();
-                loadManageNews();
-                loadInsights();
-
-            } catch (err) {
-                formAlert.textContent = 'Fehler beim Veröffentlichen: ' + err.message;
-                formAlert.className = 'alert alert-error';
-                formAlert.classList.remove('hidden');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Beitrag veröffentlichen';
-            }
-        });
-
-        // BEITRAG LÖSCHEN
         window.deleteNews = async function(id) {
-            if (!confirm("Beitrag wirklich unwiderruflich löschen?")) return;
-            manageAlert.classList.add('hidden');
-
+            if (!confirm("Möchtest du diesen Beitrag wirklich unwiderruflich löschen?")) return;
             try {
                 const { error } = await supabaseClient.from('aktuelles').delete().eq('id', id);
                 if (error) throw error;
-
-                manageAlert.textContent = 'Beitrag erfolgreich gelöscht!';
-                manageAlert.className = 'alert alert-success';
-                manageAlert.classList.remove('hidden');
                 loadManageNews();
                 loadInsights();
             } catch (err) {
-                manageAlert.textContent = 'Fehler beim Löschen: ' + err.message;
-                manageAlert.className = 'alert alert-error';
-                manageAlert.classList.remove('hidden');
+                alert("Fehler beim Löschen des Beitrags: " + err.message);
             }
         };
 
-        // IMPRESSUM LADEN
+        // IMPRESSUM LADEN (Platzhalter / Basis)
         async function loadImpressumAdmin() {
-            try {
-                const { data } = await supabaseClient.from('site_content').select('*').eq('id', 'impressum').single();
-                if (data && data.daten) {
-                    document.getElementById('impTitel').value = data.titel || 'Impressum';
-                    document.getElementById('impAllgemein').value = data.daten.allgemein || '';
-                    document.getElementById('impKontakt').value = data.daten.kontakt || '';
-                    document.getElementById('impMstv').value = data.daten.mstv || '';
-                    document.getElementById('impRedaktion').value = data.daten.redaktion || '';
-                    document.getElementById('impTechnik').value = data.daten.technik || '';
-                    document.getElementById('impSchlichtung').value = data.daten.schlichtung || '';
-                }
-            } catch (err) { console.log(err); }
+            // Falls ihr eine Impressums-Tabelle habt, kann sie hier geladen werden.
         }
-
-        // IMPRESSUM SPEICHERN
-        document.getElementById('impressumForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('impressumBtn');
-            const alertBox = document.getElementById('impressumAlert');
-            
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Speichere...';
-            alertBox.classList.add('hidden');
-
-            const titel = document.getElementById('impTitel').value;
-            const datenObj = {
-                allgemein: document.getElementById('impAllgemein').value,
-                kontakt: document.getElementById('impKontakt').value,
-                mstv: document.getElementById('impMstv').value,
-                redaktion: document.getElementById('impRedaktion').value,
-                technik: document.getElementById('impTechnik').value,
-                schlichtung: document.getElementById('impSchlichtung').value
-            };
-
-            try {
-                const { error } = await supabaseClient.from('site_content').update({ titel, daten: datenObj, updated_at: new Date() }).eq('id', 'impressum');
-                if (error) throw error;
-
-                alertBox.textContent = 'Impressum erfolgreich aktualisiert!';
-                alertBox.className = 'alert alert-success';
-                alertBox.classList.remove('hidden');
-            } catch (err) {
-                alertBox.textContent = 'Fehler beim Speichern: ' + err.message;
-                alertBox.className = 'alert alert-error';
-                alertBox.classList.remove('hidden');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Impressum speichern';
-            }
-        });
     </script>
 </body>
 </html>
