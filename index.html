@@ -207,6 +207,30 @@
             </div>
         </section>
 
+        <!-- Facebook Feed Integration (Ohne Konto für Besucher lesbar) -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fa-brands fa-facebook" style="color: #1877f2;"></i> KrayFürAlle auf Facebook</h2>
+                <p class="section-subtitle">Folgt uns auf Facebook für tägliche Einblicke – auch ganz ohne eigenes Konto nutzbar.</p>
+            </div>
+
+            <div class="card" style="text-align: center; overflow: hidden; padding: 1.5rem; max-width: 600px; margin: 0 auto;">
+                <div class="fb-page" 
+                     data-href="https://www.facebook.com/krayfuralle" 
+                     data-tabs="timeline" 
+                     data-width="500" 
+                     data-height="600" 
+                     data-small-header="false" 
+                     data-adapt-container-width="true" 
+                     data-hide-cover="false" 
+                     data-show-facepile="true">
+                    <blockquote cite="https://www.facebook.com/krayfuralle" class="fb-xfbml-parse-ignore">
+                        <a href="https://www.facebook.com/krayfuralle">KrayFürAlle e.V. auf Facebook</a>
+                    </blockquote>
+                </div>
+            </div>
+        </section>
+
         <!-- Sponsoren & Partner Sektion -->
         <section class="section" id="sponsoren-section">
             <div class="section-header">
@@ -272,6 +296,10 @@
             <button type="submit" style="background: #2563eb; color: #ffffff; border: none; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600;"><i class="fa-solid fa-paper-plane"></i></button>
         </form>
     </div>
+
+    <!-- Facebook SDK for JavaScript -->
+    <div id="fb-root"></div>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/de_DE/sdk.js#xfbml=1&version=v18.0"></script>
 
     <!-- Supabase SDK & Navigation Include -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
