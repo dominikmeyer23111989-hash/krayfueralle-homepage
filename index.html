@@ -292,7 +292,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/include.js"></script>
 
-    <!-- Script: Lädt Angebote, Aktuelles, Termine, Facebook-Posts und Sponsoren -->
+    <!-- Script: Lädt Angebote, Aktuelles, Termine, Facebook-Posts und Sponsoren direkt aus Supabase -->
     <script>
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
@@ -300,7 +300,7 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- Automatischer Seitenaufruf-Tracker ---
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async function() {
             if (typeof supabaseClient !== 'undefined') {
                 supabaseClient
                     .from('seitenaufrufe')
@@ -309,147 +309,6 @@
                         if (error) console.error('Fehler beim Zählen des Seitenaufrufs:', error);
                     });
             }
-        });
-
-        // --- Chatbot Toggle & Logik ---
-        function toggleChatWidget() {
-            const win = document.getElementById('chatWidgetWindow');
-            win.style.display = (win.style.display === 'none' || win.style.display === '') ? 'flex' : 'none';
-        }
-
-        async function handleChatSubmit(e) {
-            e.preventDefault();
-            const input = document.getElementById('chatInput');
-            const msg = input.value.trim();
-            if (!msg) return;
-
-            const container = document.getElementById('chatMessages');
-
-            container.innerHTML += `
-                <div style="background: #2563eb; color: #ffffff; padding: 0.6rem 0.8rem; border-radius: 12px; max-width: 85%; align-self: flex-end; line-height: 1.4;">
-                    ${msg}
-                </div>
-            `;
-            input.value = '';
-            container.scrollTop = container.scrollHeight;
-
-            let reply = "Das habe ich leider nicht ganz verstanden. 🤔 Frage mich gerne nach **Terminen**, **Aktuellem**, der **Mitgliedschaft** oder unseren **Sponsoren**!";
-            const query = msg.toLowerCase();
-
-            if (query.includes('termin') || query.includes('veranstaltung') || query.includes('wann')) {
-                const { data: events } = await supabaseClient.from('events').select('name, start_datum').limit(3);
-                if (events && events.length > 0) {
-                    reply = "📅 <b>Anstehende Termine:</b><br>" + events.map(e => `• ${e.name} (${e.start_datum || 'Demnächst'})`).join('<br>');
-                } else {
-                    reply = "Derzeit stehen keine Termine im Kalender.";
-                }
-            } else if (query.includes('news') || query.includes('aktuell') || query.includes('beitrag')) {
-                const { data: news } = await supabaseClient.from('aktuelles').select('titel').limit(3);
-                if (news && news.length > 0) {
-                    reply = "📰 <b>Neueste Beiträge:</b><br>" + news.map(n => `• ${n.titel}`).join('<br>');
-                } else {
-                    reply = "Aktuell gibt es keine neuen Beiträge.";
-                }
-            } else if (query.includes('mitglied') || query.includes('beitreten') || query.includes('antrag')) {
-                reply = "🤝 Du kannst deinen Mitgliedsantrag direkt oben im Menü unter <b>Mitglied werden</b> ausfüllen!";
-            } else if (query.includes('sponsor') || query.includes('partner')) {
-                reply = "⭐ Unsere Sponsoren findest du direkt unten auf der Startseite. Wir freuen uns über jede Unterstützung!";
-            }
-
-            setTimeout(() => {
-                container.innerHTML += `
-                    <div style="background: #e2e8f0; color: #0f172a; padding: 0.6rem 0.8rem; border-radius: 12px; max-width: 85%; align-self: flex-start; line-height: 1.4;">
-                        ${reply}
-                    </div>
-                `;
-                container.scrollTop = container.scrollHeight;
-            }, 300);
-        }
-
-       // --- FACEBOOK POSTS LADEN VIA CORSPROXY & NATIVER XML PARSER ---
-        async function loadFacebookPosts() {
-            const container = document.getElementById('facebookPostsGrid');
-            const targetFeed = 'https://rss.app/feeds/Ov1YRUfI0cPlLS2C.xml';
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetFeed)}`;
-
-            try {
-                const response = await fetch(proxyUrl);
-                const xmlText = await response.text();
-
-                // XML-Inhalt parsen
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-                const items = xmlDoc.querySelectorAll("item");
-
-                if (!items || items.length === 0) {
-                    container.innerHTML = `
-                        <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
-                            <i class="fa-brands fa-facebook" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
-                            <p style="margin: 0;">Derzeit sind keine Beiträge auf Facebook vorhanden.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                let html = '';
-                // Die neuesten 3 Beiträge anzeigen
-                Array.from(items).slice(0, 3).forEach(item => {
-                    const title = item.querySelector("title")?.textContent || '';
-                    const link = item.querySelector("link")?.textContent || '#';
-                    const pubDateText = item.querySelector("pubDate")?.textContent || '';
-                    const description = item.querySelector("description")?.textContent || '';
-
-                    // Datum formatieren
-                    const dateObj = pubDateText ? new Date(pubDateText) : new Date();
-                    const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-
-                    // Bild aus HTML-Beschreibung oder Enclosure extrahieren
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = description;
-                    const imgTag = tempDiv.querySelector('img');
-                    const imgSrc = imgTag ? imgTag.src : item.querySelector("enclosure")?.getAttribute("url");
-
-                    // Reinen Text extrahieren
-                    const cleanText = tempDiv.textContent || tempDiv.innerText || title;
-
-                    const imageElement = imgSrc 
-                        ? `<div style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 1rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${imgSrc}" alt="Facebook Post" style="max-width: 100%; max-height: 100%; object-fit: cover;"></div>` 
-                        : '';
-
-                    html += `
-                        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
-                            <div>
-                                ${imageElement}
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
-                                    <span><i class="fa-brands fa-facebook" style="color: #1877f2; margin-right: 0.3rem;"></i> ${formattedDate}</span>
-                                </div>
-                                <p class="card-text" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">
-                                    ${cleanText}
-                                </p>
-                            </div>
-                            <div style="margin-top: 1rem;">
-                                <a href="${link}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); font-weight: 600; text-decoration: none; font-size: 0.9rem;">
-                                    Auf Facebook ansehen <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.8rem;"></i>
-                                </a>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                container.innerHTML = html;
-
-            } catch (err) {
-                console.error("Fehler beim Laden des Facebook-Feeds:", err);
-                container.innerHTML = `
-                    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">
-                        <p style="margin: 0;">Facebook-Beiträge konnten derzeit nicht geladen werden.</p>
-                    </div>
-                `;
-            }
-        }
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Facebook-Posts laden
-            loadFacebookPosts();
 
             // --- 0. ANGEBOTE LADEN ---
             const angeboteGrid = document.getElementById('angeboteGrid');
@@ -485,8 +344,10 @@
                 console.error("Fehler beim Laden der Angebote:", err);
             }
 
-            // --- 1. AKTUELLES / NEWS LADEN ---
+            // --- 1. AKTUELLES / NEWS & FACEBOOK POSTS AUS SUPABASE LADEN ---
             const newsGrid = document.getElementById('newsGrid');
+            const facebookGrid = document.getElementById('facebookPostsGrid');
+
             try {
                 const { data: newsData, error } = await supabaseClient
                     .from('aktuelles')
@@ -497,12 +358,14 @@
                 if (error) throw error;
 
                 if (!newsData || newsData.length === 0) {
-                    newsGrid.innerHTML = `
+                    const emptyMsg = `
                         <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
                             <i class="fa-solid fa-newspaper" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
                             <p style="margin: 0;">Derzeit sind keine Beiträge vorhanden.</p>
                         </div>
                     `;
+                    if (newsGrid) newsGrid.innerHTML = emptyMsg;
+                    if (facebookGrid) facebookGrid.innerHTML = emptyMsg;
                 } else {
                     let newsHtml = '';
                     newsData.forEach(item => {
@@ -527,15 +390,19 @@
                             </div>
                         `;
                     });
-                    newsGrid.innerHTML = newsHtml;
+
+                    if (newsGrid) newsGrid.innerHTML = newsHtml;
+                    if (facebookGrid) facebookGrid.innerHTML = newsHtml;
                 }
             } catch (err) {
                 console.error("Fehler beim Laden der News:", err);
-                newsGrid.innerHTML = `
+                const errorMsg = `
                     <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">
                         <p>Beiträge konnten im Moment nicht geladen werden.</p>
                     </div>
                 `;
+                if (newsGrid) newsGrid.innerHTML = errorMsg;
+                if (facebookGrid) facebookGrid.innerHTML = errorMsg;
             }
 
             // --- 2. ZUKÜNFTIGE TERMINE LADEN ---
@@ -666,6 +533,61 @@
                 `;
             }
         });
+
+        // --- Chatbot Toggle & Logik ---
+        function toggleChatWidget() {
+            const win = document.getElementById('chatWidgetWindow');
+            win.style.display = (win.style.display === 'none' || win.style.display === '') ? 'flex' : 'none';
+        }
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const container = document.getElementById('chatMessages');
+
+            container.innerHTML += `
+                <div style="background: #2563eb; color: #ffffff; padding: 0.6rem 0.8rem; border-radius: 12px; max-width: 85%; align-self: flex-end; line-height: 1.4;">
+                    ${msg}
+                </div>
+            `;
+            input.value = '';
+            container.scrollTop = container.scrollHeight;
+
+            let reply = "Das habe ich leider nicht ganz verstanden. 🤔 Frage mich gerne nach **Terminen**, **Aktuellem**, der **Mitgliedschaft** oder unseren **Sponsoren**!";
+            const query = msg.toLowerCase();
+
+            if (query.includes('termin') || query.includes('veranstaltung') || query.includes('wann')) {
+                const { data: events } = await supabaseClient.from('events').select('name, start_datum').limit(3);
+                if (events && events.length > 0) {
+                    reply = "📅 <b>Anstehende Termine:</b><br>" + events.map(e => `• ${e.name} (${e.start_datum || 'Demnächst'})`).join('<br>');
+                } else {
+                    reply = "Derzeit stehen keine Termine im Kalender.";
+                }
+            } else if (query.includes('news') || query.includes('aktuell') || query.includes('beitrag')) {
+                const { data: news } = await supabaseClient.from('aktuelles').select('titel').limit(3);
+                if (news && news.length > 0) {
+                    reply = "📰 <b>Neueste Beiträge:</b><br>" + news.map(n => `• ${n.titel}`).join('<br>');
+                } else {
+                    reply = "Aktuell gibt es keine neuen Beiträge.";
+                }
+            } else if (query.includes('mitglied') || query.includes('beitreten') || query.includes('antrag')) {
+                reply = "🤝 Du kannst deinen Mitgliedsantrag direkt oben im Menü unter <b>Mitglied werden</b> ausfüllen!";
+            } else if (query.includes('sponsor') || query.includes('partner')) {
+                reply = "⭐ Unsere Sponsoren findest du direkt unten auf der Startseite. Wir freuen uns über jede Unterstützung!";
+            }
+
+            setTimeout(() => {
+                container.innerHTML += `
+                    <div style="background: #e2e8f0; color: #0f172a; padding: 0.6rem 0.8rem; border-radius: 12px; max-width: 85%; align-self: flex-start; line-height: 1.4;">
+                        ${reply}
+                    </div>
+                `;
+                container.scrollTop = container.scrollHeight;
+            }, 300);
+        }
     </script>
 </body>
 </html>
