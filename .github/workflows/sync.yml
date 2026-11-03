@@ -1,29 +1,67 @@
-name: Facebook to Supabase Sync
+import os
+import requests
+import feedparser
 
-on:
-  schedule:
-    - cron: '0 */3 * * *' # Läuft alle 3 Stunden automatisch
-  workflow_dispatch:      # Erlaubt den manuellen Start direkt auf GitHub
+# Secrets aus den Umgebungsvariablen laden
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+FEED_URL = "https://rss.app/feeds/Ov1YRUfI0cPlLS2C.xml"  # Deine RSS-URL
 
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Repository auschecken
-        uses: actions/checkout@v4
+print("=== START FACEBOOK SYNC ===")
 
-      - name: Python einrichten
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
+# 1. Secrets-Check
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("❌ FEHLER: SUPABASE_URL oder SUPABASE_SERVICE_ROLE_KEY fehlt in den Secrets!")
+    exit(1)
+else:
+    print("✅ Secrets erfolgreich geladen.")
 
-      - name: Abhängigkeiten installieren
-        run: |
-          pip install requests feedparser
+# 2. Feed auslesen
+print(f"Hole Daten von RSS-Feed: {FEED_URL}")
+feed = feedparser.parse(FEED_URL)
 
-      - name: Sync-Skript ausführen
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: |
-          python scripts/sync_facebook.py
+print(f"Gefundene Feed-Einträge: {len(feed.entries)}")
+
+if len(feed.entries) == 0:
+    print("⚠️ WARNUNG: Der RSS-Feed liefert 0 Einträge! Prüfe die RSS-URL.")
+    exit(0)
+
+# 3. Posts aufbereiten
+posts = []
+for entry in feed.entries[:3]:
+    titel = entry.get("title", "Neuer Beitrag")
+    inhalt = entry.get("summary", entry.get("description", ""))
+    
+    # Bild-URL auslesen (falls vorhanden)
+    bild_url = None
+    if "enclosures" in entry and len(entry.enclosures) > 0:
+        bild_url = entry.enclosures[0].get("href")
+    elif "media_content" in entry and len(entry.media_content) > 0:
+        bild_url = entry.media_content[0].get("url")
+
+    posts.append({
+        "titel": titel[:150],
+        "inhalt": inhalt,
+        "autor": "Facebook",
+        "bild_url": bild_url
+    })
+
+# 4. An Supabase senden
+endpoint = f"{SUPABASE_URL}/rest/v1/aktuelles"
+headers = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "return=minimal"
+}
+
+print(f"Sende {len(posts)} Posts an Supabase REST API ({endpoint})...")
+response = requests.post(endpoint, headers=headers, json=posts)
+
+if response.status_code in [200, 201]:
+    print("🎉 SUCCESS: Posts erfolgreich in Supabase gespeichert!")
+else:
+    print(f"❌ SUPABASE FEHLER (Status {response.status_code}):")
+    print(response.text)
+
+print("=== END SYNC ===")
