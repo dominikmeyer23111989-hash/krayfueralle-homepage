@@ -366,17 +366,17 @@
             }, 300);
         }
 
-        // --- FACEBOOK POSTS LADEN VIA RSS2JSON ---
+        // --- FACEBOOK POSTS LADEN VIA RSS2JSON API ---
         async function loadFacebookPosts() {
             const container = document.getElementById('facebookPostsGrid');
-            const rssUrl = encodeURIComponent('https://rss.app/feeds/Ov1YRUfI0cPlLS2C.xml');
-            const jsonApiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`;
+            const targetFeed = 'https://rss.app/feeds/Ov1YRUfI0cPlLS2C.xml';
+            const apiEndpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(targetFeed)}`;
 
             try {
-                const response = await fetch(jsonApiUrl);
+                const response = await fetch(apiEndpoint);
                 const data = await response.json();
 
-                if (!data.items || data.items.length === 0) {
+                if (data.status !== 'ok' || !data.items || data.items.length === 0) {
                     container.innerHTML = `
                         <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
                             <i class="fa-brands fa-facebook" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
@@ -389,16 +389,21 @@
                 let html = '';
                 // Die neuesten 3 Beiträge anzeigen
                 data.items.slice(0, 3).forEach(item => {
-                    const dateObj = new Date(item.pubDate);
+                    const dateObj = item.pubDate ? new Date(item.pubDate) : new Date();
                     const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     
-                    // Hilfsvariable um reinen Text ohne HTML-Tags herauszufiltern
+                    // HTML-Tags aus der Beschreibung entfernen, um sauberen Text zu erhalten
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = item.description || item.content || '';
+                    
+                    // Bild aus dem Feed extrahieren (falls vorhanden)
+                    const imgTag = tempDiv.querySelector('img');
+                    const imgSrc = item.thumbnail || (imgTag ? imgTag.src : null);
+
                     const cleanText = tempDiv.textContent || tempDiv.innerText || item.title || '';
 
-                    const imageElement = item.thumbnail 
-                        ? `<div style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 1rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${item.thumbnail}" alt="Facebook Post" style="max-width: 100%; max-height: 100%; object-fit: cover;"></div>` 
+                    const imageElement = imgSrc 
+                        ? `<div style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 1rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${imgSrc}" alt="Facebook Post" style="max-width: 100%; max-height: 100%; object-fit: cover;"></div>` 
                         : '';
 
                     html += `
@@ -420,6 +425,7 @@
                         </div>
                     `;
                 });
+
                 container.innerHTML = html;
 
             } catch (err) {
