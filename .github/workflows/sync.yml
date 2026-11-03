@@ -1,0 +1,29 @@
+name: Facebook to Supabase Sync
+
+on:
+  schedule:
+    - cron: '0 */3 * * *' # Läuft alle 3 Stunden automatisch
+  workflow_dispatch:      # Erlaubt den manuellen Start direkt auf GitHub
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Abhängigkeiten installieren
+        run: |
+          pip install requests feedparser
+
+      - name: Sync-Skript ausführen
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python scripts/sync_facebook.py
