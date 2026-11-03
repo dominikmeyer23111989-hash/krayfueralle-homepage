@@ -207,77 +207,21 @@
             </div>
         </section>
 
-    // --- FACEBOOK POSTS LADEN VIA RSS2JSON API ---
-        async function loadFacebookPosts() {
-            const container = document.getElementById('facebookPostsGrid');
-            const targetFeed = 'https://rss.app/feeds/Ov1YRUfI0cPlLS2C.xml';
-            const apiEndpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(targetFeed)}`;
+        <!-- Facebook Feed Integration -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fa-brands fa-facebook" style="color: #1877f2;"></i> Aktuelles von Facebook</h2>
+                <p class="section-subtitle">Die neuesten Beiträge direkt von unserer Facebook-Seite.</p>
+            </div>
 
-            try {
-                const response = await fetch(apiEndpoint);
-                const data = await response.json();
+            <div id="facebookPostsGrid" class="grid-3">
+                <div class="card" style="text-align: center; color: var(--text-muted); padding: 3rem; grid-column: 1 / -1;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <p style="margin: 0;">Lade Facebook-Beiträge...</p>
+                </div>
+            </div>
+        </section>
 
-                if (data.status !== 'ok' || !data.items || data.items.length === 0) {
-                    container.innerHTML = `
-                        <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
-                            <i class="fa-brands fa-facebook" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
-                            <p style="margin: 0;">Derzeit sind keine Beiträge auf Facebook vorhanden.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                let html = '';
-                // Die neuesten 3 Beiträge anzeigen
-                data.items.slice(0, 3).forEach(item => {
-                    const dateObj = item.pubDate ? new Date(item.pubDate) : new Date();
-                    const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    
-                    // HTML-Tags aus der Beschreibung entfernen, um sauberen Text zu erhalten
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = item.description || item.content || '';
-                    
-                    // Bild aus dem Feed extrahieren (falls vorhanden)
-                    const imgTag = tempDiv.querySelector('img');
-                    const imgSrc = item.thumbnail || (imgTag ? imgTag.src : null);
-
-                    const cleanText = tempDiv.textContent || tempDiv.innerText || item.title || '';
-
-                    const imageElement = imgSrc 
-                        ? `<div style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 1rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${imgSrc}" alt="Facebook Post" style="max-width: 100%; max-height: 100%; object-fit: cover;"></div>` 
-                        : '';
-
-                    html += `
-                        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
-                            <div>
-                                ${imageElement}
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
-                                    <span><i class="fa-brands fa-facebook" style="color: #1877f2; margin-right: 0.3rem;"></i> ${formattedDate}</span>
-                                </div>
-                                <p class="card-text" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">
-                                    ${cleanText}
-                                </p>
-                            </div>
-                            <div style="margin-top: 1rem;">
-                                <a href="${item.link}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); font-weight: 600; text-decoration: none; font-size: 0.9rem;">
-                                    Auf Facebook ansehen <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.8rem;"></i>
-                                </a>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                container.innerHTML = html;
-
-            } catch (err) {
-                console.error("Fehler beim Laden des Facebook-Feeds:", err);
-                container.innerHTML = `
-                    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">
-                        <p style="margin: 0;">Facebook-Beiträge konnten derzeit nicht geladen werden.</p>
-                    </div>
-                `;
-            }
-        }
         <!-- Sponsoren & Partner Sektion -->
         <section class="section" id="sponsoren-section">
             <div class="section-header">
