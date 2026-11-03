@@ -207,26 +207,17 @@
             </div>
         </section>
 
-        <!-- Facebook Feed Integration (Ohne Konto für Besucher lesbar) -->
+        <!-- Facebook Feed Integration via RSS.app -->
         <section class="section">
             <div class="section-header">
-                <h2 class="section-title"><i class="fa-brands fa-facebook" style="color: #1877f2;"></i> KrayFürAlle auf Facebook</h2>
-                <p class="section-subtitle">Folgt uns auf Facebook für tägliche Einblicke – auch ganz ohne eigenes Konto nutzbar.</p>
+                <h2 class="section-title"><i class="fa-brands fa-facebook" style="color: #1877f2;"></i> Aktuelles von Facebook</h2>
+                <p class="section-subtitle">Die neuesten Beiträge direkt von unserer Facebook-Seite.</p>
             </div>
 
-            <div class="card" style="text-align: center; overflow: hidden; padding: 1.5rem; max-width: 600px; margin: 0 auto;">
-                <div class="fb-page" 
-                     data-href="https://www.facebook.com/pKray-f%C3%BCr-Alle-61589548116172/" 
-                     data-tabs="timeline" 
-                     data-width="500" 
-                     data-height="600" 
-                     data-small-header="false" 
-                     data-adapt-container-width="true" 
-                     data-hide-cover="false" 
-                     data-show-facepile="true">
-                    <blockquote cite="https://www.facebook.com/pKray-f%C3%BCr-Alle-61589548116172/" class="fb-xfbml-parse-ignore">
-                        <a href="https://www.facebook.com/pKray-f%C3%BCr-Alle-61589548116172/">KrayFürAlle e.V. auf Facebook</a>
-                    </blockquote>
+            <div id="facebookPostsGrid" class="grid-3">
+                <div class="card" style="text-align: center; color: var(--text-muted); padding: 3rem; grid-column: 1 / -1;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <p style="margin: 0;">Lade Facebook-Beiträge...</p>
                 </div>
             </div>
         </section>
@@ -297,15 +288,11 @@
         </form>
     </div>
 
-    <!-- Facebook SDK for JavaScript -->
-    <div id="fb-root"></div>
-    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/de_DE/sdk.js#xfbml=1&version=v18.0"></script>
-
     <!-- Supabase SDK & Navigation Include -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/include.js"></script>
 
-    <!-- Script: Lädt Angebote, Aktuelles, Termine und Sponsoren aus Supabase & Chatbot-Logik -->
+    <!-- Script: Lädt Angebote, Aktuelles, Termine, Facebook-Posts und Sponsoren -->
     <script>
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
@@ -379,7 +366,76 @@
             }, 300);
         }
 
+        // --- FACEBOOK POSTS LADEN VIA RSS2JSON ---
+        async function loadFacebookPosts() {
+            const container = document.getElementById('facebookPostsGrid');
+            const rssUrl = encodeURIComponent('https://rss.app/feeds/Ov1YRUfI0cPlLS2C.xml');
+            const jsonApiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`;
+
+            try {
+                const response = await fetch(jsonApiUrl);
+                const data = await response.json();
+
+                if (!data.items || data.items.length === 0) {
+                    container.innerHTML = `
+                        <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                            <i class="fa-brands fa-facebook" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
+                            <p style="margin: 0;">Derzeit sind keine Beiträge auf Facebook vorhanden.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                // Die neuesten 3 Beiträge anzeigen
+                data.items.slice(0, 3).forEach(item => {
+                    const dateObj = new Date(item.pubDate);
+                    const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    
+                    // Hilfsvariable um reinen Text ohne HTML-Tags herauszufiltern
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = item.description || item.content || '';
+                    const cleanText = tempDiv.textContent || tempDiv.innerText || item.title || '';
+
+                    const imageElement = item.thumbnail 
+                        ? `<div style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 1rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${item.thumbnail}" alt="Facebook Post" style="max-width: 100%; max-height: 100%; object-fit: cover;"></div>` 
+                        : '';
+
+                    html += `
+                        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                            <div>
+                                ${imageElement}
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                                    <span><i class="fa-brands fa-facebook" style="color: #1877f2; margin-right: 0.3rem;"></i> ${formattedDate}</span>
+                                </div>
+                                <p class="card-text" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">
+                                    ${cleanText}
+                                </p>
+                            </div>
+                            <div style="margin-top: 1rem;">
+                                <a href="${item.link}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); font-weight: 600; text-decoration: none; font-size: 0.9rem;">
+                                    Auf Facebook ansehen <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.8rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+
+            } catch (err) {
+                console.error("Fehler beim Laden des Facebook-Feeds:", err);
+                container.innerHTML = `
+                    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">
+                        <p style="margin: 0;">Facebook-Beiträge konnten derzeit nicht geladen werden.</p>
+                    </div>
+                `;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async function() {
+            // Facebook-Posts laden
+            loadFacebookPosts();
+
             // --- 0. ANGEBOTE LADEN ---
             const angeboteGrid = document.getElementById('angeboteGrid');
             try {
