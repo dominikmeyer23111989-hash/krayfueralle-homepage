@@ -2,56 +2,65 @@ import os
 import requests
 import feedparser
 
-# Konfiguration aus GitHub Secrets laden
+# Secrets aus den Umgebungsvariablen laden
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-RSS_FEED_URL = "https://rss.app/feeds/Ov1YRUfI0cPlLS2C.xml"
+FEED_URL = "https://rss.app/feeds/Ov1YRUfI0cPlLS2C.xml"
 
-def sync_feed():
-    print("Lese RSS-Feed aus...")
-    feed = feedparser.parse(RSS_FEED_URL)
+print("=== START FACEBOOK SYNC ===")
+
+# 1. Secrets-Check
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("❌ FEHLER: SUPABASE_URL oder SUPABASE_SERVICE_ROLE_KEY fehlt in den Secrets!")
+    exit(1)
+else:
+    print("✅ Secrets erfolgreich geladen.")
+
+# 2. Feed auslesen
+print(f"Hole Daten von RSS-Feed: {FEED_URL}")
+feed = feedparser.parse(FEED_URL)
+
+print(f"Gefundene Feed-Einträge: {len(feed.entries)}")
+
+if len(feed.entries) == 0:
+    print("⚠️ WARNUNG: Der RSS-Feed liefert 0 Einträge! Prüfe die RSS-URL.")
+    exit(0)
+
+# 3. Posts aufbereiten
+posts = []
+for entry in feed.entries[:3]:
+    titel = entry.get("title", "Neuer Beitrag")
+    inhalt = entry.get("summary", entry.get("description", ""))
     
-    if not feed.entries:
-        print("Keine Einträge im Feed gefunden.")
-        return
+    bild_url = None
+    if "enclosures" in entry and len(entry.enclosures) > 0:
+        bild_url = entry.enclosures[0].get("href")
+    elif "media_content" in entry and len(entry.media_content) > 0:
+        bild_url = entry.media_content[0].get("url")
 
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}",
-        "Content-Type": "application/json",
-        "Prefer": "resolution=merge-duplicates" # Verhindert doppelte Einträge, falls ein Unique Key existiert
-    }
+    posts.append({
+        "titel": titel[:150],
+        "inhalt": inhalt,
+        "autor": "Facebook",
+        "bild_url": bild_url
+    })
 
-    # Die neuesten Beiträge durchgehen (z. B. die letzten 5)
-    for entry in feed.entries[:5]:
-        title = entry.get("title", "Facebook Beitrag")
-        link = entry.get("link", "")
-        published = entry.get("published", "")
-        description = entry.get("description", "")
-        
-        # Bild-URL aus dem Feed extrahieren (falls vorhanden)
-        image_url = None
-        if "media_content" in entry and entry.media_content:
-            image_url = entry.media_content[0].get("url")
-        elif "enclosures" in entry and entry.enclosures:
-            image_url = entry.enclosures[0].get("href")
+# 4. An Supabase senden
+endpoint = f"{SUPABASE_URL}/rest/v1/aktuelles"
+headers = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "return=minimal"
+}
 
-        payload = {
-            "titel": title[:100], # Kürzen falls zu lang
-            "inhalt": description,
-            "bild_url": image_url,
-            "autor": "KrayFürAlle (Facebook-Bot)",
-            "created_at": published if published else None
-        }
+print(f"Sende {len(posts)} Posts an Supabase REST API ({endpoint})...")
+response = requests.post(endpoint, headers=headers, json=posts)
 
-        # An Supabase senden (Tabelle: 'aktuelles')
-        url = f"{SUPABASE_URL}/rest/v1/aktuelles"
-        response = requests.post(url, headers=headers, json=payload)
-        
-        if response.status_code in [200, 201]:
-            print(f"Erfolgreich synchronisiert: {title}")
-        else:
-            print(f"Fehler bei {title}: {response.text}")
+if response.status_code in [200, 201]:
+    print("🎉 SUCCESS: Posts erfolgreich in Supabase gespeichert!")
+else:
+    print(f"❌ SUPABASE FEHLER (Status {response.status_code}):")
+    print(response.text)
 
-if __name__ == "__main__":
-    sync_feed()
+print("=== END SYNC ===")
