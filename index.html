@@ -173,7 +173,7 @@
             </div>
         </section>
 
-        <!-- Aktuelles / News Sektion -->
+        <!-- Aktuelles / News Sektion (Nur Verein, kein Facebook) -->
         <section class="section" id="aktuelles-section">
             <div class="section-header">
                 <h2 class="section-title">Aktuelles aus dem Verein</h2>
@@ -207,7 +207,7 @@
             </div>
         </section>
 
-        <!-- Facebook Feed Integration -->
+        <!-- Facebook Feed Integration (Getrennt von Vereins-News) -->
         <section class="section">
             <div class="section-header">
                 <h2 class="section-title"><i class="fa-brands fa-facebook" style="color: #1877f2;"></i> Aktuelles von Facebook</h2>
@@ -292,12 +292,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/include.js"></script>
 
-    <!-- Script: Lädt Angebote, Aktuelles, Termine, Facebook-Posts und Sponsoren direkt aus Supabase -->
+    <!-- Script: Lädt Angebote, getrennte News, Termine, Facebook-Posts und Sponsoren direkt aus Supabase -->
     <script>
         const SUPABASE_URL = 'https://ythubjdnercyeyfedsam.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0aHViamRuZXJjeWV5ZmVkc2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MjgzNTgsImV4cCI6MjA5OTEwNDM1OH0.loeU2abylobRmPJvuHwdZLbHNyTL4qlKOtIRk-qZp34';
         
-        // Supabase-Client mit deaktiviertem Session-Storage (umgeht Tracking-Prevention im Browser)
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
                 persistSession: false,
@@ -351,65 +350,112 @@
                 console.error("Fehler beim Laden der Angebote:", err);
             }
 
-            // --- 1. AKTUELLES / NEWS & FACEBOOK POSTS AUS SUPABASE LADEN ---
+            // --- 1A. VEREINS-NEWS (Nur manuelle Beiträge, kein Facebook) ---
             const newsGrid = document.getElementById('newsGrid');
-            const facebookGrid = document.getElementById('facebookPostsGrid');
-
             try {
                 const { data: newsData, error } = await supabaseClient
                     .from('aktuelles')
                     .select('*')
+                    .neq('autor', 'Facebook')
                     .order('created_at', { ascending: false })
                     .limit(3);
 
                 if (error) throw error;
 
-                if (!newsData || newsData.length === 0) {
-                    const emptyMsg = `
-                        <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
-                            <i class="fa-solid fa-newspaper" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
-                            <p style="margin: 0;">Derzeit sind keine Beiträge vorhanden.</p>
-                        </div>
-                    `;
-                    if (newsGrid) newsGrid.innerHTML = emptyMsg;
-                    if (facebookGrid) facebookGrid.innerHTML = emptyMsg;
-                } else {
-                    let newsHtml = '';
-                    newsData.forEach(item => {
-                        const dateObj = new Date(item.created_at);
-                        const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                        
-                        const imageElement = item.bild_url 
-                            ? `<div style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 1rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${item.bild_url}" alt="${item.titel}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>` 
-                            : '';
-
-                        newsHtml += `
-                            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
-                                <div>
-                                    ${imageElement}
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
-                                        <span><i class="fa-solid fa-calendar-days" style="margin-right: 0.2rem;"></i> ${formattedDate}</span>
-                                        <span><i class="fa-solid fa-user" style="margin-right: 0.2rem;"></i> ${item.autor}</span>
-                                    </div>
-                                    <h3 class="card-title" style="font-size: 1.2rem; margin-bottom: 0.75rem;">${item.titel}</h3>
-                                    <p class="card-text" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${item.inhalt}</p>
-                                </div>
+                if (newsGrid) {
+                    if (!newsData || newsData.length === 0) {
+                        newsGrid.innerHTML = `
+                            <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                                <i class="fa-solid fa-newspaper" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
+                                <p style="margin: 0;">Derzeit sind keine Vereinsbeiträge vorhanden.</p>
                             </div>
                         `;
-                    });
+                    } else {
+                        let newsHtml = '';
+                        newsData.forEach(item => {
+                            const dateObj = new Date(item.created_at);
+                            const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            
+                            const imageElement = item.bild_url 
+                                ? `<div style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 1rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${item.bild_url}" alt="${item.titel}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>` 
+                                : '';
 
-                    if (newsGrid) newsGrid.innerHTML = newsHtml;
-                    if (facebookGrid) facebookGrid.innerHTML = newsHtml;
+                            newsHtml += `
+                                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        ${imageElement}
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                                            <span><i class="fa-solid fa-calendar-days" style="margin-right: 0.2rem;"></i> ${formattedDate}</span>
+                                            <span><i class="fa-solid fa-user" style="margin-right: 0.2rem;"></i> ${item.autor || 'Redaktion'}</span>
+                                        </div>
+                                        <h3 class="card-title" style="font-size: 1.2rem; margin-bottom: 0.75rem;">${item.titel}</h3>
+                                        <p class="card-text" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${item.inhalt}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        newsGrid.innerHTML = newsHtml;
+                    }
                 }
             } catch (err) {
-                console.error("Fehler beim Laden der News:", err);
-                const errorMsg = `
-                    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">
-                        <p>Beiträge konnten im Moment nicht geladen werden.</p>
-                    </div>
-                `;
-                if (newsGrid) newsGrid.innerHTML = errorMsg;
-                if (facebookGrid) facebookGrid.innerHTML = errorMsg;
+                console.error("Fehler beim Laden der Vereins-News:", err);
+                if (newsGrid) {
+                    newsGrid.innerHTML = `<div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;"><p>Beiträge konnten nicht geladen werden.</p></div>`;
+                }
+            }
+
+            // --- 1B. FACEBOOK BEITRÄGE (Nur Autor = 'Facebook') ---
+            const facebookGrid = document.getElementById('facebookPostsGrid');
+            try {
+                const { data: fbData, error: fbError } = await supabaseClient
+                    .from('aktuelles')
+                    .select('*')
+                    .eq('autor', 'Facebook')
+                    .order('created_at', { ascending: false })
+                    .limit(3);
+
+                if (fbError) throw fbError;
+
+                if (facebookGrid) {
+                    if (!fbData || fbData.length === 0) {
+                        facebookGrid.innerHTML = `
+                            <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                                <i class="fa-brands fa-facebook" style="font-size: 2rem; color: #1877f2; margin-bottom: 0.5rem; display: block;"></i>
+                                <p style="margin: 0;">Derzeit sind keine Facebook-Beiträge synchronisiert.</p>
+                            </div>
+                        `;
+                    } else {
+                        let fbHtml = '';
+                        fbData.forEach(item => {
+                            const dateObj = new Date(item.created_at);
+                            const formattedDate = dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            
+                            const imageElement = item.bild_url 
+                                ? `<div style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 1rem; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden;"><img src="${item.bild_url}" alt="${item.titel}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>` 
+                                : '';
+
+                            fbHtml += `
+                                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        ${imageElement}
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                                            <span><i class="fa-solid fa-calendar-days" style="margin-right: 0.2rem;"></i> ${formattedDate}</span>
+                                            <span style="color: #1877f2; font-weight: 600;"><i class="fa-brands fa-facebook"></i> Facebook</span>
+                                        </div>
+                                        <h3 class="card-title" style="font-size: 1.2rem; margin-bottom: 0.75rem;">${item.titel}</h3>
+                                        <p class="card-text" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${item.inhalt}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        facebookGrid.innerHTML = fbHtml;
+                    }
+                }
+            } catch (err) {
+                console.error("Fehler beim Laden der Facebook-Beiträge:", err);
+                if (facebookGrid) {
+                    facebookGrid.innerHTML = `<div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;"><p>Facebook-Beiträge konnten nicht geladen werden.</p></div>`;
+                }
             }
 
             // --- 2. ZUKÜNFTIGE TERMINE LADEN ---
@@ -462,33 +508,35 @@
             combinedEvents.sort((a, b) => a.dateObj - b.dateObj);
             const upcoming = combinedEvents.slice(0, 3);
 
-            if (upcoming.length === 0) {
-                previewGrid.innerHTML = `
-                    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
-                        <i class="fa-solid fa-calendar-xmark" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
-                        <p style="margin: 0;">Derzeit sind keine bevorstehenden Termine eingetragen.</p>
-                    </div>
-                `;
-            } else {
-                let eventsHtml = '';
-                upcoming.forEach(item => {
-                    const formattedDate = item.dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-
-                    eventsHtml += `
-                        <div class="card">
-                            <span class="event-badge">${item.type}</span>
-                            <div class="event-date">
-                                <i class="fa-solid fa-calendar-day"></i> ${formattedDate}
-                            </div>
-                            <h3 class="card-title">${item.title}</h3>
-                            <p class="card-text"><i class="fa-solid fa-location-dot" style="margin-right: 0.3rem;"></i> ${item.ort}</p>
-                            <a href="events.html" style="color: var(--primary-color); font-weight: 600; text-decoration: none; font-size: 0.9rem;">
-                                Details & Anmelden <i class="fa-solid fa-arrow-right" style="font-size: 0.8rem;"></i>
-                            </a>
+            if (previewGrid) {
+                if (upcoming.length === 0) {
+                    previewGrid.innerHTML = `
+                        <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                            <i class="fa-solid fa-calendar-xmark" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
+                            <p style="margin: 0;">Derzeit sind keine bevorstehenden Termine eingetragen.</p>
                         </div>
                     `;
-                });
-                previewGrid.innerHTML = eventsHtml;
+                } else {
+                    let eventsHtml = '';
+                    upcoming.forEach(item => {
+                        const formattedDate = item.dateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                        eventsHtml += `
+                            <div class="card">
+                                <span class="event-badge">${item.type}</span>
+                                <div class="event-date">
+                                    <i class="fa-solid fa-calendar-day"></i> ${formattedDate}
+                                </div>
+                                <h3 class="card-title">${item.title}</h3>
+                                <p class="card-text"><i class="fa-solid fa-location-dot" style="margin-right: 0.3rem;"></i> ${item.ort}</p>
+                                <a href="events.html" style="color: var(--primary-color); font-weight: 600; text-decoration: none; font-size: 0.9rem;">
+                                    Details & Anmelden <i class="fa-solid fa-arrow-right" style="font-size: 0.8rem;"></i>
+                                </a>
+                            </div>
+                        `;
+                    });
+                    previewGrid.innerHTML = eventsHtml;
+                }
             }
 
             // --- 3. SPONSOREN LADEN ---
@@ -499,45 +547,49 @@
                     .select('*')
                     .order('sortierung', { ascending: true });
 
-                if (spError || !sponsorenData || sponsorenData.length === 0) {
-                    sponsorenGrid.innerHTML = `
-                        <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
-                            <i class="fa-solid fa-handshake-angle" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
-                            <p style="margin: 0;">Derzeit sind keine Sponsoren gelistet.</p>
-                        </div>
-                    `;
-                } else {
-                    let spHtml = '';
-                    sponsorenData.forEach(sp => {
-                        const logoContent = sp.logo_url 
-                            ? `<img src="${sp.logo_url}" alt="${sp.name}" class="sponsor-logo">` 
-                            : `<div style="font-size: 1.2rem; font-weight: 700; color: var(--text-main); text-align: center;">${sp.name}</div>`;
-
-                        const cardInner = `
-                            <div class="sponsor-card">
-                                <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--primary-color); background: #eff6ff; padding: 0.2rem 0.6rem; border-radius: 20px; margin-bottom: 0.75rem;">
-                                    ${sp.kategorie || 'Partner'}
-                                </span>
-                                ${logoContent}
-                                ${sp.beschreibung ? `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 0; text-align: center;">${sp.beschreibung}</p>` : ''}
+                if (sponsorenGrid) {
+                    if (spError || !sponsorenData || sponsorenData.length === 0) {
+                        sponsorenGrid.innerHTML = `
+                            <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                                <i class="fa-solid fa-handshake-angle" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.5rem; display: block;"></i>
+                                <p style="margin: 0;">Derzeit sind keine Sponsoren gelistet.</p>
                             </div>
                         `;
+                    } else {
+                        let spHtml = '';
+                        sponsorenData.forEach(sp => {
+                            const logoContent = sp.logo_url 
+                                ? `<img src="${sp.logo_url}" alt="${sp.name}" class="sponsor-logo">` 
+                                : `<div style="font-size: 1.2rem; font-weight: 700; color: var(--text-main); text-align: center;">${sp.name}</div>`;
 
-                        if (sp.website_url) {
-                            spHtml += `<a href="${sp.website_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${cardInner}</a>`;
-                        } else {
-                            spHtml += cardInner;
-                        }
-                    });
-                    sponsorenGrid.innerHTML = spHtml;
+                            const cardInner = `
+                                <div class="sponsor-card">
+                                    <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--primary-color); background: #eff6ff; padding: 0.2rem 0.6rem; border-radius: 20px; margin-bottom: 0.75rem;">
+                                        ${sp.kategorie || 'Partner'}
+                                    </span>
+                                    ${logoContent}
+                                    ${sp.beschreibung ? `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 0; text-align: center;">${sp.beschreibung}</p>` : ''}
+                                </div>
+                            `;
+
+                            if (sp.website_url) {
+                                spHtml += `<a href="${sp.website_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${cardInner}</a>`;
+                            } else {
+                                spHtml += cardInner;
+                            }
+                        });
+                        sponsorenGrid.innerHTML = spHtml;
+                    }
                 }
             } catch (err) {
                 console.error("Fehler beim Laden der Sponsoren:", err);
-                sponsorenGrid.innerHTML = `
-                    <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">
-                        <p style="margin: 0;">Sponsoren konnten nicht geladen werden.</p>
-                    </div>
-                `;
+                if (sponsorenGrid) {
+                    sponsorenGrid.innerHTML = `
+                        <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem;">
+                            <p style="margin: 0;">Sponsoren konnten nicht geladen werden.</p>
+                        </div>
+                    `;
+                }
             }
         });
 
