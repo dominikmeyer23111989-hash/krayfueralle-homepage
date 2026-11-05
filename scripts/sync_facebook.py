@@ -6,7 +6,7 @@ import feedparser
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
-# Deine NEUE RSS-Feed-URL
+# Deine aktuelle Facebook RSS-Feed-URL
 FEED_URL = "https://rss.app/feeds/I0SLdMp2Hine8Hkx.xml"
 
 print("=== START FACEBOOK SYNC ===")
@@ -25,7 +25,7 @@ feed = feedparser.parse(FEED_URL)
 print(f"Gefundene Feed-Einträge: {len(feed.entries)}")
 
 if len(feed.entries) == 0:
-    print("⚠️ WARNUNG: Der RSS-Feed liefert 0 Einträge! Prüfe die RSS-URL.")
+    print("ℹ️ Info: Der RSS-Feed liefert aktuell 0 Einträge. Es gibt nichts zu synchronisieren.")
     exit(0)
 
 # 3. Posts aufbereiten
