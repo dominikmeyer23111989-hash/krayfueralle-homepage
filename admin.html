@@ -288,3 +288,250 @@
                     const now = new Date();
                     const todayStr = now.toISOString().split('T')[0];
                     const currentMonthStr = todayStr.substring(0, 7);
+                    const currentYearStr = todayStr.substring(0, 4);
+
+                    let countToday = 0, countMonth = 0, countYear = 0;
+                    viewsData.forEach(row => {
+                        const rowDate = row.created_at;
+                        if (rowDate.startsWith(todayStr)) countToday++;
+                        if (rowDate.startsWith(currentMonthStr)) countMonth++;
+                        if (rowDate.startsWith(currentYearStr)) countYear++;
+                    });
+
+                    document.getElementById('viewsToday').textContent = countToday;
+                    document.getElementById('viewsMonth').textContent = countMonth;
+                    document.getElementById('viewsYear').textContent = countYear;
+                }
+
+                const { data: news } = await supabaseClient.from('aktuelles').select('created_at').order('created_at', { ascending: false });
+                if (news) {
+                    document.getElementById('statNewsCount').textContent = news.length;
+                    if (news.length > 0) {
+                        const lastDate = new Date(news[0].created_at).toLocaleDateString('de-DE');
+                        document.getElementById('statNewsLatest').textContent = `Letzter: ${lastDate}`;
+                    } else {
+                        document.getElementById('statNewsLatest').textContent = 'Keine Beiträge';
+                    }
+                }
+            } catch (err) { console.error("Insights Fehler:", err); }
+        }
+
+        window.resetVisitStats = async function() {
+            if (!confirm("Möchtest du die bisherigen Seitenaufrufe wirklich alle auf 0 zurücksetzen?")) return;
+            try {
+                const { error } = await supabaseClient.from('seitenaufrufe').delete().neq('id', 0);
+                if (error) throw error;
+                alert("Der Besucherzähler wurde erfolgreich zurückgesetzt!");
+                document.getElementById('viewsToday').textContent = '0';
+                document.getElementById('viewsMonth').textContent = '0';
+                document.getElementById('viewsYear').textContent = '0';
+            } catch (err) {
+                alert("Fehler beim Zurücksetzen: " + err.message);
+            }
+        };
+
+        async function loadSponsorenAdmin() {
+            const listContainer = document.getElementById('sponsorenAdminList');
+            try {
+                const { data: sponsoren, error } = await supabaseClient.from('sponsoren').select('*').order('created_at', { ascending: false });
+                if (sponsoren) document.getElementById('statSponsorenCount').textContent = sponsoren.length;
+                if (error || !sponsoren || sponsoren.length === 0) {
+                    listContainer.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin: 0;">Keine Sponsoren eingetragen.</p>`;
+                    return;
+                }
+                let html = '';
+                sponsoren.forEach(sp => {
+                    html += `
+                        <div class="manage-item">
+                            <div class="manage-info">
+                                <span class="badge">${sp.kategorie || 'Partner'}</span>
+                                <div class="manage-title">${sp.name}</div>
+                                <div class="manage-subtitle">${sp.website_url ? sp.website_url : 'Keine Website verlinkt'}</div>
+                            </div>
+                            <button onclick="deleteSponsor('${sp.id}')" class="btn-delete-item"><i class="fa-solid fa-trash-can"></i> Löschen</button>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+            } catch (err) { listContainer.innerHTML = `<p style="color: #991b1b; text-align: center; margin: 0;">Fehler beim Laden.</p>`; }
+        }
+
+        document.getElementById('sponsorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('spSubmitBtn');
+            const alertBox = document.getElementById('sponsorAlert');
+            btn.disabled = true;
+            try {
+                const name = document.getElementById('spName').value.trim();
+                const kategorie = document.getElementById('spKategorie').value;
+                const logo_url = document.getElementById('spLogo').value.trim();
+                const website_url = document.getElementById('spWebsite').value.trim();
+                const { error } = await supabaseClient.from('sponsoren').insert([{ name, kategorie, logo_url, website_url }]);
+                if (error) throw error;
+                alertBox.textContent = 'Sponsor hinzugefügt!';
+                alertBox.className = 'alert alert-success';
+                alertBox.classList.remove('hidden');
+                document.getElementById('sponsorForm').reset();
+                loadSponsorenAdmin();
+            } catch (err) {
+                alertBox.textContent = 'Fehler: ' + err.message;
+                alertBox.className = 'alert alert-error';
+                alertBox.classList.remove('hidden');
+            } finally { btn.disabled = false; }
+        });
+
+        window.deleteSponsor = async function(id) {
+            if (!confirm("Sponsor wirklich löschen?")) return;
+            try {
+                await supabaseClient.from('sponsoren').delete().eq('id', id);
+                loadSponsorenAdmin();
+            } catch (e) { console.error(e); }
+        };
+
+        async function loadAngeboteAdmin() {
+            const listContainer = document.getElementById('angeboteAdminList');
+            if (!listContainer) return;
+            try {
+                const { data: angebote } = await supabaseClient.from('angebote').select('*').order('created_at', { ascending: false });
+                if (!angebote || angebote.length === 0) {
+                    listContainer.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin: 0;">Keine Angebote eingetragen.</p>`;
+                    return;
+                }
+                let html = '';
+                angebote.forEach(item => {
+                    html += `
+                        <div class="manage-item">
+                            <div class="manage-info">
+                                <div class="manage-title"><i class="${item.icon_klasse || 'fa-solid fa-star'}"></i> ${item.titel}</div>
+                                <div class="manage-subtitle">${item.beschreibung}</div>
+                            </div>
+                            <button onclick="deleteAngebot('${item.id}')" class="btn-delete-item"><i class="fa-solid fa-trash-can"></i> Löschen</button>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+            } catch (e) { console.error(e); }
+        }
+
+        document.getElementById('angeboteForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const titel = document.getElementById('angTitel').value.trim();
+            const icon_klasse = document.getElementById('angIcon').value.trim() || 'fa-solid fa-star';
+            const beschreibung = document.getElementById('angBeschreibung').value.trim();
+            try {
+                await supabaseClient.from('angebote').insert([{ titel, icon_klasse, beschreibung }]);
+                document.getElementById('angeboteForm').reset();
+                loadAngeboteAdmin();
+            } catch (e) { alert(e.message); }
+        });
+
+        window.deleteAngebot = async function(id) {
+            if (!confirm("Angebot wirklich löschen?")) return;
+            await supabaseClient.from('angebote').delete().eq('id', id);
+            loadAngeboteAdmin();
+        };
+
+        newsForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            try {
+                const titel = document.getElementById('newsTitle').value.trim();
+                const autor = document.getElementById('newsAuthor').value.trim();
+                const bild_url = document.getElementById('newsImage').value.trim();
+                const inhalt = document.getElementById('newsContent').value.trim();
+
+                const { error } = await supabaseClient.from('aktuelles').insert([{ titel, autor, bild_url, inhalt }]);
+                if (error) throw error;
+
+                formAlert.textContent = 'Beitrag erfolgreich veröffentlicht!';
+                formAlert.className = 'alert alert-success';
+                formAlert.classList.remove('hidden');
+                newsForm.reset();
+                loadManageNews();
+                loadInsights();
+            } catch (err) {
+                formAlert.textContent = 'Fehler: ' + err.message;
+                formAlert.className = 'alert alert-error';
+                formAlert.classList.remove('hidden');
+            } finally { submitBtn.disabled = false; }
+        });
+
+        async function loadManageNews() {
+            try {
+                const { data: newsData } = await supabaseClient.from('aktuelles').select('*').order('created_at', { ascending: false });
+                if (!newsData || newsData.length === 0) {
+                    manageList.innerHTML = `<p style="color: var(--text-muted); text-align: center; padding: 1rem;">Keine Beiträge vorhanden.</p>`;
+                    return;
+                }
+                let html = '';
+                newsData.forEach(item => {
+                    const dateStr = new Date(item.created_at).toLocaleDateString('de-DE');
+                    html += `
+                        <div class="manage-item">
+                            <div class="manage-info">
+                                <div class="manage-title">${item.titel}</div>
+                                <div class="manage-subtitle">Vom ${dateStr} | Autor: ${item.autor || 'Redaktion'}</div>
+                            </div>
+                            <button onclick="deleteNews('${item.id}')" class="btn-delete-item"><i class="fa-solid fa-trash-can"></i> Löschen</button>
+                        </div>
+                    `;
+                });
+                manageList.innerHTML = html;
+            } catch (e) { console.error(e); }
+        }
+
+        window.deleteNews = async function(id) {
+            if (!confirm("Beitrag wirklich löschen?")) return;
+            await supabaseClient.from('aktuelles').delete().eq('id', id);
+            loadManageNews();
+            loadInsights();
+        };
+
+        // LOGIN MIT MITGLIEDER-PRÜFUNG & VORSTANDS-FALLBACK
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            loginError.classList.add('hidden');
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const passwordInput = document.getElementById('password').value.trim();
+
+            try {
+                const { data: memberData } = await supabaseClient
+                    .from('mitglieder')
+                    .select('*')
+                    .ilike('email', email)
+                    .maybeSingle();
+
+                let isAuthorized = false;
+                if (memberData) {
+                    if (memberData.ist_gesperrt) throw new Error("Account ist gesperrt.");
+                    const rolle = (memberData.rolle || '').toLowerCase();
+                    if (memberData.hat_inventar_rechte || rolle === 'vorstand' || rolle === 'admin' || rolle === 'redaktion') {
+                        isAuthorized = true;
+                    }
+                    if (memberData.sicherheitsantwort && memberData.sicherheitsantwort !== passwordInput) {
+                        throw new Error("Falsche Sicherheitsantwort.");
+                    }
+                } else {
+                    // Erlaube Login auch direkt, wenn gewünscht oder falls in Tabelle hinterlegt
+                    isAuthorized = true; 
+                }
+
+                if (!isAuthorized) throw new Error("Keine Berechtigung.");
+
+                localStorage.setItem('kray_admin_logged_in', 'true');
+                localStorage.setItem('kray_admin_email', email);
+                checkSession();
+            } catch (err) {
+                loginError.textContent = 'Login fehlgeschlagen: ' + err.message;
+                loginError.classList.remove('hidden');
+            }
+        });
+
+        logoutBtn.addEventListener('click', function() {
+            localStorage.removeItem('kray_admin_logged_in');
+            localStorage.removeItem('kray_admin_email');
+            checkSession();
+        });
+    </script>
+</body>
+</html>
