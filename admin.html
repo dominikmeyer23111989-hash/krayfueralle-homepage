@@ -610,32 +610,53 @@
             }
         };
 
-        // LOGIN PRÜFUNG
+       // LOGIN PRÜFUNG
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             loginError.classList.add('hidden');
             
-            const email = document.getElementById('email').value.trim();
+            const email = document.getElementById('email').value.trim().toLowerCase();
             const passwordInput = document.getElementById('password').value.trim();
 
+            // Feste Notfall-Vorstandsliste (falls in der Datenbank noch was fehlt)
+            const hardcodedVorstand = [
+                "deine.email@verein.de" // <-- Hier Eure Vorstands-E-Mails eintragen, falls nötig
+            ];
+
             try {
+                // Versuche zuerst den normalen Datenbank-Check
                 const { data: memberData, error } = await supabaseClient
                     .from('mitglieder')
                     .select('*')
-                    .eq('email', email)
-                    .single();
+                    .ilike('email', email)
+                    .maybeSingle();
 
-                if (error || !memberData) throw new Error("E-Mail-Adresse nicht gefunden.");
-                if (memberData.ist_gesperrt) throw new Error("Dieser Account ist gesperrt.");
-                if (!memberData.hat_inventar_rechte && memberData.rolle !== 'Vorstand' && memberData.rolle !== 'Admin') {
-                    throw new Error("Keine Berechtigung für den Admin-Bereich.");
+                let isAuthorized = false;
+
+                if (memberData) {
+                    if (memberData.ist_gesperrt) throw new Error("Dieser Account ist gesperrt.");
+                    
+                    // Prüfe Rollen / Rechte flexibel (Groß/Kleinschreibung egal)
+                    const rolle = (memberData.rolle || '').toLowerCase();
+                    if (memberData.hat_inventar_rechte || rolle === 'vorstand' || rolle === 'admin' || rolle === 'redaktion') {
+                        isAuthorized = true;
+                    }
+                    
+                    // Passwort / Sicherheitsantwort prüfen, falls in DB hinterlegt
+                    if (memberData.sicherheitsantwort && memberData.sicherheitsantwort !== passwordInput) {
+                        throw new Error("Falsche Sicherheitsantwort.");
+                    }
+                } else if (hardcodedVorstand.includes(email)) {
+                    // Fallback: E-Mail ist in der harten Vorstandsliste
+                    isAuthorized = true;
                 }
-                if (memberData.sicherheitsantwort && memberData.sicherheitsantwort !== passwordInput) {
-                    throw new Error("Falsche Sicherheitsantwort.");
+
+                if (!isAuthorized) {
+                    throw new Error("Keine Berechtigung oder E-Mail-Adresse nicht gefunden.");
                 }
 
                 localStorage.setItem('kray_admin_logged_in', 'true');
-                localStorage.setItem('kray_admin_email', memberData.email);
+                localStorage.setItem('kray_admin_email', email);
                 checkSession();
 
             } catch (err) {
@@ -643,7 +664,6 @@
                 loginError.classList.remove('hidden');
             }
         });
-
         // LOGOUT
         logoutBtn.addEventListener('click', function() {
             localStorage.removeItem('kray_admin_logged_in');
