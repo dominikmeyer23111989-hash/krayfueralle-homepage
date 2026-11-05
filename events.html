@@ -200,18 +200,31 @@
         document.addEventListener('DOMContentLoaded', async function() {
             let calendarEvents = [];
 
-            // 1. Tabelle 'events' auslesen
+            // 1. Tabelle 'events' auslesen (mit Mehrtages-Support)
             try {
                 const { data: eventsData, error: err1 } = await supabaseClient.from('events').select('*');
                 if (!err1 && eventsData) {
                     eventsData.forEach(evt => {
                         if (evt.start_datum) {
+                            let endDate = evt.end_datum;
+                            
+                            // FullCalendar benötigt bei mehrtägigen Events als Enddatum den Folgetag, 
+                            // damit der letzte Tag optisch im Kalender noch komplett eingefärbt wird.
+                            if (endDate && endDate !== evt.start_datum) {
+                                let nextDay = new Date(endDate);
+                                nextDay.setDate(nextDay.getDate() + 1);
+                                endDate = nextDay.toISOString().split('T')[0];
+                            }
+
                             calendarEvents.push({
                                 title: evt.name || 'Veranstaltung',
                                 start: evt.start_datum,
+                                end: endDate,
                                 color: '#2563eb',
                                 extendedProps: {
                                     type: 'Event',
+                                    startDatum: evt.start_datum,
+                                    endDatum: evt.end_datum || '',
                                     ort: evt.ort || '',
                                     startZeit: evt.uhrzeit_start || '',
                                     endZeit: evt.uhrzeit_ende || '',
@@ -229,13 +242,24 @@
                 const { data: termineData, error: err2 } = await supabaseClient.from('termine').select('*');
                 if (!err2 && termineData) {
                     termineData.forEach(term => {
-                        if (term.datum) {
+                        const startDateVal = term.start_datum || term.datum;
+                        if (startDateVal) {
+                            let endDate = term.end_datum;
+                            if (endDate && endDate !== startDateVal) {
+                                let nextDay = new Date(endDate);
+                                nextDay.setDate(nextDay.getDate() + 1);
+                                endDate = nextDay.toISOString().split('T')[0];
+                            }
+
                             calendarEvents.push({
                                 title: term.titel || 'Termin',
-                                start: term.datum,
+                                start: startDateVal,
+                                end: endDate,
                                 color: '#0d9488',
                                 extendedProps: {
                                     type: 'Termin',
+                                    startDatum: startDateVal,
+                                    endDatum: term.end_datum || '',
                                     ort: term.ort || '',
                                     startZeit: term.uhrzeit_von || '',
                                     endZeit: term.uhrzeit_bis || '',
@@ -260,12 +284,18 @@
                 eventClick: function(info) {
                     const evt = info.event;
                     const props = evt.extendedProps || {};
-                    const dateFormatted = evt.start ? new Date(evt.start).toLocaleDateString('de-DE') : '-';
+                    
+                    // Datumsanzeige (Start bis Ende, falls vorhanden)
+                    let dateFormatted = props.startDatum ? new Date(props.startDatum).toLocaleDateString('de-DE') : '-';
+                    if (props.endDatum && props.endDatum !== props.startDatum) {
+                        const endFormatted = new Date(props.endDatum).toLocaleDateString('de-DE');
+                        dateFormatted = `${dateFormatted} – ${endFormatted}`;
+                    }
 
                     document.getElementById('modalEventTitle').innerText = evt.title;
                     document.getElementById('modalEventDate').innerText = dateFormatted;
                     document.getElementById('partEventTitle').value = evt.title;
-                    document.getElementById('partEventDate').value = evt.startStr ? evt.startStr.split('T')[0] : '';
+                    document.getElementById('partEventDate').value = props.startDatum || '';
 
                     if (props.startZeit) {
                         document.getElementById('modalEventTime').innerText = props.startZeit + (props.endZeit ? ' - ' + props.endZeit : '');
