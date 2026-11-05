@@ -5,7 +5,9 @@ import feedparser
 # Secrets aus den Umgebungsvariablen laden
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-FEED_URL = "https://rss.app/feeds/Ov1YRUfI0cPlLS2C.xml"
+
+# Deine NEUE RSS-Feed-URL
+FEED_URL = "https://rss.app/feeds/I0SLdMp2Hine8Hkx.xml"
 
 print("=== START FACEBOOK SYNC ===")
 
@@ -28,7 +30,7 @@ if len(feed.entries) == 0:
 
 # 3. Posts aufbereiten
 posts = []
-for entry in feed.entries[:3]:
+for entry in feed.entries[:5]:  # Die neuesten 5 Posts
     titel = entry.get("title", "Neuer Beitrag")
     inhalt = entry.get("summary", entry.get("description", ""))
     
@@ -51,7 +53,7 @@ headers = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json",
-    "Prefer": "return=minimal"
+    "Prefer": "resolution=merge-duplicates"
 }
 
 print(f"Sende {len(posts)} Posts an Supabase REST API ({endpoint})...")
