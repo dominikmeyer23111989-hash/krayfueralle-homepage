@@ -130,7 +130,7 @@
         </div>
     </div>
 
-    <!-- MASK 2: BUCHUNGSANFRAGE MODAL (Nur bei Aktiv) -->
+    <!-- MASK 2: BUCHUNGSANFRAGE MODAL (AKTIV) -->
     <div id="bookingRequestModal" class="modal-backdrop">
         <div class="modal-card">
             <button type="button" class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
@@ -176,6 +176,39 @@
         </div>
     </div>
 
+    <!-- MASK 3: HINWEIS MODAL (INAKTIV) -->
+    <div id="bookingDisabledModal" class="modal-backdrop">
+        <div class="modal-card" style="text-align: center;">
+            <button type="button" class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+
+            <div style="background: #fee2e2; color: #dc2626; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; font-size: 1.8rem;">
+                <i class="fa-solid fa-calendar-xmark"></i>
+            </div>
+
+            <span style="background: #fee2e2; color: #991b1b; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Anfragen pausiert</span>
+            
+            <h2 style="font-size: 1.4rem; color: var(--text-main); margin: 0.75rem 0 0.5rem 0;">Eventanfragen zurzeit deaktiviert</h2>
+            
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                Für das gewählte Datum (<strong id="disabledDateDisplay" style="color: var(--text-main);">-</strong>) können aktuell keine neuen Buchungsanfragen über den Kalender eingereicht werden.
+            </p>
+
+            <div style="background: #f8fafc; border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 12px; text-align: left; margin-bottom: 1.5rem;">
+                <div style="font-weight: 600; color: var(--text-main); font-size: 0.9rem; margin-bottom: 0.3rem;">
+                    <i class="fa-solid fa-envelope" style="color: var(--primary-color); margin-right: 0.4rem;"></i> Direktkontakt zum Vorstand:
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                    Du kannst uns bei dringenden Anliegen oder Fragen jederzeit direkt per E-Mail erreichen unter:<br>
+                    <a href="mailto:kray-fuer-alle@gmx.de" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">kray-fuer-alle@gmx.de</a>
+                </div>
+            </div>
+
+            <button type="button" onclick="closeModals()" class="btn-primary" style="background: #64748b;">
+                Verstanden & Schließen
+            </button>
+        </div>
+    </div>
+
     <!-- Footer-Modul -->
     <div data-include="components/footer.html"></div>
 
@@ -193,6 +226,7 @@
         function closeModals() {
             document.getElementById('eventDetailModal').style.display = 'none';
             document.getElementById('bookingRequestModal').style.display = 'none';
+            document.getElementById('bookingDisabledModal').style.display = 'none';
         }
 
         async function sendEmailNotification(data) {
@@ -227,11 +261,6 @@
                 }
             } catch (e) {
                 console.log("Config Info:", e);
-            }
-
-            // Untertitel optisch anpassen, falls Anfragen deaktiviert sind
-            if (!anfragenErlaubt) {
-                document.getElementById('pageSubtitle').innerHTML = 'Klicke auf einen <strong>Eintrag im Kalender</strong> für Details und zur Anmeldung. <em>Eventanfragen über den Kalender sind derzeit vom Administrator pausiert.</em>';
             }
 
             // 1. Tabelle 'events' auslesen
@@ -311,7 +340,7 @@
                 buttonText: { today: 'Heute' },
                 events: calendarEvents,
                 
-                // Event-Klick: Anmeldung zu bestehenden Events (bleibt immer aktiv)
+                // Event-Klick: Details & Teilnahme (bleibt immer aktiv)
                 eventClick: function(info) {
                     const evt = info.event;
                     const props = evt.extendedProps || {};
@@ -350,21 +379,21 @@
                     document.getElementById('eventDetailModal').style.display = 'flex';
                 },
 
-                // Klick auf freies Datum: Gesteuert durch den Schieberegler
+                // Klick auf freies Datum: Öffnet je nach Schieberegler-Status das passende Modal
                 dateClick: function(info) {
-                    if (!anfragenErlaubt) {
-                        // Professioneller Hinweis bei Inaktivität
-                        alert('Eventanfragen über den Kalender sind derzeit vorübergehend deaktiviert.\n\nSie können uns bei Fragen oder Anliegen gerne direkt per E-Mail unter kray-fuer-alle@gmx.de kontaktieren.');
-                        return; // Stoppt das Öffnen eines Modals
-                    }
-
                     const rawDate = info.dateStr;
                     const dateFormatted = new Date(rawDate).toLocaleDateString('de-DE');
 
-                    document.getElementById('reqDateDisplay').innerText = dateFormatted;
-                    document.getElementById('reqDateValue').value = rawDate;
-
-                    document.getElementById('bookingRequestModal').style.display = 'flex';
+                    if (anfragenErlaubt) {
+                        // AKTIV -> Buchungsanfrage Formular-Modal öffnen
+                        document.getElementById('reqDateDisplay').innerText = dateFormatted;
+                        document.getElementById('reqDateValue').value = rawDate;
+                        document.getElementById('bookingRequestModal').style.display = 'flex';
+                    } else {
+                        // INAKTIV -> Hinweis-Modal mit Mailkontakt öffnen
+                        document.getElementById('disabledDateDisplay').innerText = dateFormatted;
+                        document.getElementById('bookingDisabledModal').style.display = 'flex';
+                    }
                 }
             });
             calendar.render();
@@ -408,7 +437,7 @@
                 });
             }
 
-            // 5. Formular 2: Veranstalter-Anfrage für freies Datum (nur bei Aktiv)
+            // 5. Formular 2: Veranstalter-Anfrage für freies Datum
             const orgForm = document.getElementById('organizerForm');
             if (orgForm) {
                 orgForm.addEventListener('submit', async function(e) {
