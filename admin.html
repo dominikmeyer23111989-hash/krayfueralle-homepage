@@ -106,7 +106,7 @@
                 </div>
             </div>
 
-            <!-- Event-Anfragen Steuerung (NEU) -->
+            <!-- Event-Anfragen Steuerung -->
             <div class="card">
                 <h2><i class="fa-solid fa-calendar-check" style="color: var(--primary-color);"></i> Event-Buchungsanfragen steuern</h2>
                 <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Aktiviere oder deaktiviere hier temporär das Buchungstool für neue Veranstalter-Anfragen im Kalender.</p>
@@ -333,9 +333,13 @@
             const alertBox = document.getElementById('eventConfigAlert');
             
             try {
+                // UPSERT MIT ANGEGEBENEM ON CONFLICT KEY ZUR BEHEBUNG DES UNIQUE-FEHLERS
                 const { error } = await supabaseClient
                     .from('einstellungen')
-                    .upsert({ key: 'event_anfragen_aktiv', value: isChecked ? 'true' : 'false' });
+                    .upsert(
+                        { key: 'event_anfragen_aktiv', value: isChecked ? 'true' : 'false' },
+                        { onConflict: 'key' }
+                    );
 
                 if (error) throw error;
 
