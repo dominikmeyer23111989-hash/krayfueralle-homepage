@@ -199,6 +199,22 @@
 
         document.addEventListener('DOMContentLoaded', async function() {
             let calendarEvents = [];
+            let anfragenErlaubt = true; // Standardwert
+
+            // 0. Prüfen, ob Eventanfragen per Schieberegler im Admin-Bereich deaktiviert wurden
+            try {
+                const { data: configData, error: configErr } = await supabaseClient
+                    .from('einstellungen')
+                    .select('value')
+                    .eq('key', 'event_anfragen_aktiv')
+                    .maybeSingle();
+                
+                if (!configErr && configData) {
+                    anfragenErlaubt = configData.value === 'true';
+                }
+            } catch (e) {
+                console.log("Config Hinweis:", e);
+            }
 
             // 1. Tabelle 'events' auslesen (mit Mehrtages-Support)
             try {
@@ -208,8 +224,6 @@
                         if (evt.start_datum) {
                             let endDate = evt.end_datum;
                             
-                            // FullCalendar benötigt bei mehrtägigen Events als Enddatum den Folgetag, 
-                            // damit der letzte Tag optisch im Kalender noch komplett eingefärbt wird.
                             if (endDate && endDate !== evt.start_datum) {
                                 let nextDay = new Date(endDate);
                                 nextDay.setDate(nextDay.getDate() + 1);
@@ -280,12 +294,11 @@
                 buttonText: { today: 'Heute' },
                 events: calendarEvents,
                 
-                // USECASE 1: Klick auf ein bestehendes Event -> Details + Teilnahme Modal
+                // USECASE 1: Klick auf ein bestehendes Event -> Details + Teilnahme Modal (Bleibt immer aktiv!)
                 eventClick: function(info) {
                     const evt = info.event;
                     const props = evt.extendedProps || {};
                     
-                    // Datumsanzeige (Start bis Ende, falls vorhanden)
                     let dateFormatted = props.startDatum ? new Date(props.startDatum).toLocaleDateString('de-DE') : '-';
                     if (props.endDatum && props.endDatum !== props.startDatum) {
                         const endFormatted = new Date(props.endDatum).toLocaleDateString('de-DE');
@@ -320,8 +333,13 @@
                     document.getElementById('eventDetailModal').style.display = 'flex';
                 },
 
-                // USECASE 2: Klick auf freies Datum -> Veranstalter-Anfrage Modal
+                // USECASE 2: Klick auf freies Datum -> Nur wenn Schieberegler ON ist!
                 dateClick: function(info) {
+                    if (!anfragenErlaubt) {
+                        alert('Eventanfragen sind derzeit vom Administrator vorübergehend deaktiviert. Die Anmeldung zu bestehenden Terminen ist weiterhin möglich.');
+                        return; // Stoppt das Öffnen des Buchungs-Modals
+                    }
+
                     const rawDate = info.dateStr;
                     const dateFormatted = new Date(rawDate).toLocaleDateString('de-DE');
 
