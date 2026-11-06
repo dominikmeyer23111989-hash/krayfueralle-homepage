@@ -32,6 +32,8 @@
 
         .card { background: var(--card-bg); padding: 2rem; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 2rem; }
         
+        .hidden { display: none !important; }
+
         /* FullCalendar Custom Styling */
         .fc { font-family: 'Inter', sans-serif; min-height: 500px; }
         .fc-toolbar-title { font-size: 1.3rem !important; font-weight: 600; color: var(--text-main); }
@@ -88,7 +90,6 @@
             <span style="background: #e0e7ff; color: #3730a3; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Vereins-Termin</span>
             <h2 id="modalEventTitle" style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 1rem 0;">-</h2>
 
-            <!-- Event Details -->
             <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
                 <div class="detail-row"><i class="fa-solid fa-calendar-day"></i> <div><strong>Datum:</strong> <span id="modalEventDate">-</span></div></div>
                 <div class="detail-row" id="rowTime" style="display: none;"><i class="fa-solid fa-clock"></i> <div><strong>Uhrzeit:</strong> <span id="modalEventTime">-</span></div></div>
@@ -97,7 +98,6 @@
                 <div class="detail-row" id="rowDesc" style="display: none;"><i class="fa-solid fa-align-left"></i> <div><strong>Beschreibung:</strong> <span id="modalEventDesc">-</span></div></div>
             </div>
 
-            <!-- Teilnahme Maske -->
             <h4 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.8rem;">An dieser Veranstaltung teilnehmen</h4>
             <form id="participateForm">
                 <input type="hidden" id="partEventTitle">
@@ -132,14 +132,14 @@
         </div>
     </div>
 
-    <!-- MASK 2: DYNAMISCHES MODAL (BUCHUNGSANFRAGE oder KONTAKTFORMULAR) -->
+    <!-- MASK 2: DYNAMISCHES MODAL (BUCHUNGSANFRAGE ODER KONTAKTFORMULAR) -->
     <div id="bookingRequestModal" class="modal-backdrop">
         <div class="modal-card">
             <button type="button" class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
 
             <span id="modalBadge" style="padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Buchungsanfrage</span>
             <h2 id="modalHeaderTitle" style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 0.5rem 0;">Veranstalter- / Terminanfrage</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Datum: <strong id="reqDateDisplay" style="color: var(--primary-color);">-</strong></p>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Gewünschtes Datum: <strong id="reqDateDisplay" style="color: var(--primary-color);">-</strong></p>
 
             <form id="organizerForm">
                 <input type="hidden" id="reqDateValue">
@@ -160,18 +160,19 @@
                     </div>
                 </div>
 
+                <!-- BUCHUNGSFELDER (nur sichtbar wenn anfragenErlaubt = true) -->
                 <div id="rowPersonenAndNotes" style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.8rem;">
-                    <div class="form-group" id="grpCount">
+                    <div class="form-group">
                         <label for="reqCount">Erwartete Personen:</label>
                         <input type="number" id="reqCount" min="1" value="10">
                     </div>
                     <div class="form-group">
-                        <label for="reqNotes" id="lblNotes">Details & Wünsche:</label>
+                        <label for="reqNotes">Details & Wünsche:</label>
                         <input type="text" id="reqNotes" placeholder="z. B. Uhrzeit, benötigte Räume/Technik">
                     </div>
                 </div>
 
-                <!-- Für reine Nachrichten im Inaktiv-Modus -->
+                <!-- REINES NACHRICHTENFELD (nur sichtbar wenn anfragenErlaubt = false) -->
                 <div class="form-group hidden" id="grpMessageArea">
                     <label for="reqMessage">Deine Nachricht an den Vorstand:</label>
                     <textarea id="reqMessage" rows="4" placeholder="Schreibe uns deine Fragen oder Informationen zum gewählten Datum..."></textarea>
@@ -203,7 +204,6 @@
             document.getElementById('bookingRequestModal').style.display = 'none';
         }
 
-        // Hilfsfunktion zum Senden der E-Mail-Benachrichtigung an GMX via FormSubmit API
         async function sendEmailNotification(data) {
             try {
                 await fetch('https://formsubmit.co/ajax/kray-fuer-alle@gmx.de', {
@@ -223,7 +223,7 @@
             let calendarEvents = [];
             let anfragenErlaubt = true;
 
-            // 0. Status aus 'einstellungen' abfragen
+            // 0. Status aus der Datenbank 'einstellungen' abfragen
             try {
                 const { data: configData, error: configErr } = await supabaseClient
                     .from('einstellungen')
@@ -232,7 +232,7 @@
                     .maybeSingle();
                 
                 if (!configErr && configData) {
-                    anfragenErlaubt = configData.value === 'true';
+                    anfragenErlaubt = (configData.value === 'true');
                 }
             } catch (e) {
                 console.log("Config Info:", e);
@@ -315,7 +315,6 @@
                 buttonText: { today: 'Heute' },
                 events: calendarEvents,
                 
-                // Event-Klick: Anmeldung zu bestehenden Terminen
                 eventClick: function(info) {
                     const evt = info.event;
                     const props = evt.extendedProps || {};
@@ -354,7 +353,6 @@
                     document.getElementById('eventDetailModal').style.display = 'flex';
                 },
 
-                // Klick auf freies Datum: Passt die Maske dynamisch an
                 dateClick: function(info) {
                     const rawDate = info.dateStr;
                     const dateFormatted = new Date(rawDate).toLocaleDateString('de-DE');
@@ -370,25 +368,29 @@
                     const btnSubmit = document.getElementById('btnSubmitRequest');
 
                     if (anfragenErlaubt) {
-                        // AKTIV: Echte Buchungsanfrage (Formular 1)
+                        // AKTIV -> Zeige echte Buchungsanfrage
                         badge.innerText = 'Buchungsanfrage';
                         badge.style.background = '#fef3c7';
                         badge.style.color = '#92400e';
                         headerTitle.innerText = 'Veranstalter- / Terminanfrage';
                         lblTitle.innerText = 'Name der geplanten Veranstaltung / Anlass:';
-                        rowPersonenAndNotes.style.display = 'grid';
+                        
+                        rowPersonenAndNotes.classList.remove('hidden');
                         grpMessageArea.classList.add('hidden');
+                        
                         btnSubmit.style.background = '#059669';
                         btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Buchungsanfrage absenden';
                     } else {
-                        // INAKTIV: Allgemeines Kontaktformular (Formular 2)
+                        // INAKTIV -> Schalte um auf reines Kontaktformular
                         badge.innerText = 'Kontaktformular';
                         badge.style.background = '#e0f2fe';
                         badge.style.color = '#0369a1';
                         headerTitle.innerText = 'Allgemeine Anfrage senden';
                         lblTitle.innerText = 'Betreff / Thema:';
-                        rowPersonenAndNotes.style.display = 'none';
+                        
+                        rowPersonenAndNotes.classList.add('hidden');
                         grpMessageArea.classList.remove('hidden');
+                        
                         btnSubmit.style.background = '#2563eb';
                         btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Nachricht per E-Mail senden';
                     }
@@ -398,7 +400,7 @@
             });
             calendar.render();
 
-            // 4. Formular 1: Teilnahme
+            // 4. Formular 1: Teilnahme an bestehendem Event
             const partForm = document.getElementById('participateForm');
             if (partForm) {
                 partForm.addEventListener('submit', async function(e) {
@@ -420,7 +422,6 @@
                     }]);
 
                     if (!error) {
-                        // Info-Mail auch bei Teilnahme senden
                         sendEmailNotification({
                             _subject: `Neue Teilnahme-Anmeldung: ${title}`,
                             Veranstaltung: title,
@@ -438,7 +439,7 @@
                 });
             }
 
-            // 5. Formular 2: Veranstalter / Kontaktanfrage
+            // 5. Formular 2: Absenden für Klick auf freies Datum
             const orgForm = document.getElementById('organizerForm');
             if (orgForm) {
                 orgForm.addEventListener('submit', async function(e) {
@@ -449,7 +450,7 @@
                     const email = document.getElementById('reqEmail').value;
 
                     if (anfragenErlaubt) {
-                        // CASE 1: AKTIV -> In Supabase speichern UND per E-Mail verschicken
+                        // AKTIV -> In Supabase speichern UND Mail senden
                         const count = parseInt(document.getElementById('reqCount').value) || 1;
                         const notes = document.getElementById('reqNotes').value;
 
@@ -463,7 +464,6 @@
                         }]);
 
                         if (!error) {
-                            // E-Mail per FormSubmit schicken
                             sendEmailNotification({
                                 _subject: `[Neue Buchungsanfrage] ${title} am ${date}`,
                                 Datum: date,
@@ -479,7 +479,7 @@
                             orgForm.reset();
                         } else { alert('Fehler: ' + error.message); }
                     } else {
-                        // CASE 2: INAKTIV -> Nur per E-Mail an Vorstand senden (nicht in Supabase)
+                        // INAKTIV -> Nur E-Mail verschicken (nicht in Supabase anlegen)
                         const message = document.getElementById('reqMessage').value;
 
                         await sendEmailNotification({
