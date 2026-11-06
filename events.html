@@ -68,7 +68,7 @@
 
     <main class="container">
         <h1 class="header-title">Veranstaltungen & Buchungen</h1>
-        <p class="header-subtitle" id="pageSubtitle">Klicke auf einen <strong>Eintrag im Kalender</strong> für Details und zur Anmeldung, oder klicke auf ein <strong>freies Datum</strong> für eine Eventanfrage.</p>
+        <p class="header-subtitle">Klicke auf einen <strong>Eintrag im Kalender</strong> für Details und zur Anmeldung, oder klicke auf ein <strong>freies Datum</strong> für eine direkte Kontaktanfrage.</p>
 
         <!-- Kalender Card -->
         <div class="card">
@@ -130,45 +130,44 @@
         </div>
     </div>
 
-    <!-- MASK 2: NEUES KONTAKTFORMULAR FÜR EVENTANFRAGEN (Geht an kray-fuer-alle@gmx.de) -->
+    <!-- MASK 2: PROFESSIONELLES KONTAKTFORMULAR (Geht an kray-fuer-alle@gmx.de) -->
     <div id="bookingRequestModal" class="modal-backdrop">
         <div class="modal-card">
             <button type="button" class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
 
-            <span style="background: #e0f2fe; color: #0369a1; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Kontaktformular</span>
-            <h2 style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 0.5rem 0;">Eventanfrage senden</h2>
+            <span style="background: #eff6ff; color: #1d4ed8; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Direktkontakt</span>
+            <h2 style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 0.5rem 0;">Anfrage senden</h2>
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Gewünschtes Datum: <strong id="reqDateDisplay" style="color: var(--primary-color);">-</strong></p>
 
-            <!-- Action leitet direkt an FormSubmit weiter, das die Mails an kray-fuer-alle@gmx.de verschickt -->
             <form action="https://formsubmit.co/kray-fuer-alle@gmx.de" method="POST">
-                <input type="hidden" name="_subject" value="Neue Eventanfrage über den Vereinskalender!">
+                <!-- FormSubmit Einstellungen -->
+                <input type="hidden" name="_subject" value="Neue Kalender-Anfrage via Website!">
                 <input type="hidden" name="_captcha" value="false">
-                <input type="hidden" name="_next" value=""> <!-- Lässt sich nach Absenden auf dankeschön.html leiten falls gewünscht -->
                 <input type="hidden" id="reqDateValue" name="Gewünschtes_Datum">
 
                 <div class="form-group">
-                    <label for="reqTitle">Betreff / Anlass der Veranstaltung:</label>
-                    <input type="text" id="reqTitle" name="Veranstaltung" required placeholder="z. B. Raumvermietung, Gruppen-Treffen">
+                    <label for="reqTitle">Betreff / Anlass:</label>
+                    <input type="text" id="reqTitle" name="Betreff" required placeholder="z. B. Raumvermietung, Terminabstimmung">
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
                     <div class="form-group">
-                        <label for="reqName">Dein Name / Verein:</label>
+                        <label for="reqName">Dein Name:</label>
                         <input type="text" id="reqName" name="Name" required placeholder="Max Mustermann">
                     </div>
                     <div class="form-group">
-                        <label for="reqEmail">Deine E-Mail-Adresse:</label>
+                        <label for="reqEmail">E-Mail-Adresse:</label>
                         <input type="email" id="reqEmail" name="email" required placeholder="max@example.de">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="reqNotes">Deine Nachricht / Details:</label>
-                    <textarea id="reqNotes" name="Nachricht" rows="4" required placeholder="Teile uns deine Wünsche, Uhrzeiten oder Fragen mit..."></textarea>
+                    <label for="reqNotes">Deine Nachricht:</label>
+                    <textarea id="reqNotes" name="Nachricht" rows="4" required placeholder="Schreibe uns deine Fragen oder Details..."></textarea>
                 </div>
 
-                <button type="submit" class="btn-primary" style="background: #2563eb;">
-                    <i class="fa-solid fa-paper-plane"></i> Per E-Mail an Vorstand senden
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-paper-plane"></i> Nachricht absenden
                 </button>
             </form>
         </div>
@@ -195,27 +194,6 @@
 
         document.addEventListener('DOMContentLoaded', async function() {
             let calendarEvents = [];
-            let anfragenErlaubt = true;
-
-            // 0. Prüfen, ob Eventanfragen per Schieberegler im Admin-Bereich aktiv sind
-            try {
-                const { data: configData, error: configErr } = await supabaseClient
-                    .from('einstellungen')
-                    .select('value')
-                    .eq('key', 'event_anfragen_aktiv')
-                    .maybeSingle();
-                
-                if (!configErr && configData) {
-                    anfragenErlaubt = configData.value === 'true';
-                }
-            } catch (e) {
-                console.log("Config Hinweis:", e);
-            }
-
-            // Untertitel dynamisch anpassen, je nachdem ob Anfragen erlaubt sind
-            if (!anfragenErlaubt) {
-                document.getElementById('pageSubtitle').innerHTML = 'Klicke auf einen <strong>Eintrag im Kalender</strong> für Details und zur Anmeldung. <em>Eventanfragen über den Kalender sind zurzeit pausiert.</em>';
-            }
 
             // 1. Tabelle 'events' auslesen
             try {
@@ -294,7 +272,7 @@
                 buttonText: { today: 'Heute' },
                 events: calendarEvents,
                 
-                // Event-Klick: Anmeldung zu bestehenden Events (bleibt immer aktiv)
+                // Klick auf bestehendes Event -> Teilnahme-Modal
                 eventClick: function(info) {
                     const evt = info.event;
                     const props = evt.extendedProps || {};
@@ -333,13 +311,8 @@
                     document.getElementById('eventDetailModal').style.display = 'flex';
                 },
 
-                // Klick auf freies Datum: Gesteuert durch den Admin-Schieberegler
+                // Klick auf freies Datum -> Öffnet direkt das professionelle Kontaktformular
                 dateClick: function(info) {
-                    if (!anfragenErlaubt) {
-                        alert('Eventanfragen über den Kalender sind derzeit vom Administrator deaktiviert. Sie können uns bei Bedarf direkt per E-Mail an kray-fuer-alle@gmx.de kontaktieren.');
-                        return;
-                    }
-
                     const rawDate = info.dateStr;
                     const dateFormatted = new Date(rawDate).toLocaleDateString('de-DE');
 
@@ -351,7 +324,7 @@
             });
             calendar.render();
 
-            // 4. Formular: Teilnahme an Events
+            // 4. Formular: Teilnahme an Events (Supabase)
             const partForm = document.getElementById('participateForm');
             if (partForm) {
                 partForm.addEventListener('submit', async function(e) {
