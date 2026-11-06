@@ -68,7 +68,7 @@
 
     <main class="container">
         <h1 class="header-title">Veranstaltungen & Buchungen</h1>
-        <p class="header-subtitle">Klicke auf einen <strong>Eintrag im Kalender</strong> für Details und zur Anmeldung, oder klicke auf ein <strong>freies Datum</strong> für eine direkte Kontaktanfrage.</p>
+        <p class="header-subtitle">Klicke auf einen <strong>Eintrag im Kalender</strong> für Details und zur Anmeldung, oder klicke auf ein <strong>freies Datum</strong> für eine Anfrage.</p>
 
         <!-- Kalender Card -->
         <div class="card">
@@ -88,6 +88,7 @@
             <span style="background: #e0e7ff; color: #3730a3; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Vereins-Termin</span>
             <h2 id="modalEventTitle" style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 1rem 0;">-</h2>
 
+            <!-- Event Details -->
             <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
                 <div class="detail-row"><i class="fa-solid fa-calendar-day"></i> <div><strong>Datum:</strong> <span id="modalEventDate">-</span></div></div>
                 <div class="detail-row" id="rowTime" style="display: none;"><i class="fa-solid fa-clock"></i> <div><strong>Uhrzeit:</strong> <span id="modalEventTime">-</span></div></div>
@@ -96,6 +97,7 @@
                 <div class="detail-row" id="rowDesc" style="display: none;"><i class="fa-solid fa-align-left"></i> <div><strong>Beschreibung:</strong> <span id="modalEventDesc">-</span></div></div>
             </div>
 
+            <!-- Teilnahme Maske -->
             <h4 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.8rem;">An dieser Veranstaltung teilnehmen</h4>
             <form id="participateForm">
                 <input type="hidden" id="partEventTitle">
@@ -130,44 +132,53 @@
         </div>
     </div>
 
-    <!-- MASK 2: PROFESSIONELLES KONTAKTFORMULAR (Geht an kray-fuer-alle@gmx.de) -->
+    <!-- MASK 2: DYNAMISCHES MODAL (BUCHUNGSANFRAGE oder KONTAKTFORMULAR) -->
     <div id="bookingRequestModal" class="modal-backdrop">
         <div class="modal-card">
             <button type="button" class="modal-close" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
 
-            <span style="background: #eff6ff; color: #1d4ed8; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Direktkontakt</span>
-            <h2 style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 0.5rem 0;">Anfrage senden</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Gewünschtes Datum: <strong id="reqDateDisplay" style="color: var(--primary-color);">-</strong></p>
+            <span id="modalBadge" style="padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Buchungsanfrage</span>
+            <h2 id="modalHeaderTitle" style="font-size: 1.5rem; color: var(--text-main); margin: 0.5rem 0 0.5rem 0;">Veranstalter- / Terminanfrage</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Datum: <strong id="reqDateDisplay" style="color: var(--primary-color);">-</strong></p>
 
-            <form action="https://formsubmit.co/kray-fuer-alle@gmx.de" method="POST">
-                <!-- FormSubmit Einstellungen -->
-                <input type="hidden" name="_subject" value="Neue Kalender-Anfrage via Website!">
-                <input type="hidden" name="_captcha" value="false">
-                <input type="hidden" id="reqDateValue" name="Gewünschtes_Datum">
+            <form id="organizerForm">
+                <input type="hidden" id="reqDateValue">
 
                 <div class="form-group">
-                    <label for="reqTitle">Betreff / Anlass:</label>
-                    <input type="text" id="reqTitle" name="Betreff" required placeholder="z. B. Raumvermietung, Terminabstimmung">
+                    <label for="reqTitle" id="lblTitle">Name der geplanten Veranstaltung / Anlass:</label>
+                    <input type="text" id="reqTitle" required placeholder="z. B. Stadtteil-Workshop, Gruppentreffen, Schulung">
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
                     <div class="form-group">
-                        <label for="reqName">Dein Name:</label>
-                        <input type="text" id="reqName" name="Name" required placeholder="Max Mustermann">
+                        <label for="reqName">Name / Organisation:</label>
+                        <input type="text" id="reqName" required placeholder="Max Mustermann / Verein e.V.">
                     </div>
                     <div class="form-group">
                         <label for="reqEmail">E-Mail-Adresse:</label>
-                        <input type="email" id="reqEmail" name="email" required placeholder="max@example.de">
+                        <input type="email" id="reqEmail" required placeholder="max@example.de">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="reqNotes">Deine Nachricht:</label>
-                    <textarea id="reqNotes" name="Nachricht" rows="4" required placeholder="Schreibe uns deine Fragen oder Details..."></textarea>
+                <div id="rowPersonenAndNotes" style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.8rem;">
+                    <div class="form-group" id="grpCount">
+                        <label for="reqCount">Erwartete Personen:</label>
+                        <input type="number" id="reqCount" min="1" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="reqNotes" id="lblNotes">Details & Wünsche:</label>
+                        <input type="text" id="reqNotes" placeholder="z. B. Uhrzeit, benötigte Räume/Technik">
+                    </div>
                 </div>
 
-                <button type="submit" class="btn-primary">
-                    <i class="fa-solid fa-paper-plane"></i> Nachricht absenden
+                <!-- Für reine Nachrichten im Inaktiv-Modus -->
+                <div class="form-group hidden" id="grpMessageArea">
+                    <label for="reqMessage">Deine Nachricht an den Vorstand:</label>
+                    <textarea id="reqMessage" rows="4" placeholder="Schreibe uns deine Fragen oder Informationen zum gewählten Datum..."></textarea>
+                </div>
+
+                <button type="submit" id="btnSubmitRequest" class="btn-primary" style="background: #059669;">
+                    <i class="fa-solid fa-paper-plane"></i> Buchungsanfrage absenden
                 </button>
             </form>
         </div>
@@ -192,8 +203,40 @@
             document.getElementById('bookingRequestModal').style.display = 'none';
         }
 
+        // Hilfsfunktion zum Senden der E-Mail-Benachrichtigung an GMX via FormSubmit API
+        async function sendEmailNotification(data) {
+            try {
+                await fetch('https://formsubmit.co/ajax/kray-fuer-alle@gmx.de', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+            } catch (err) {
+                console.error("E-Mail Benachrichtigung Fehler:", err);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async function() {
             let calendarEvents = [];
+            let anfragenErlaubt = true;
+
+            // 0. Status aus 'einstellungen' abfragen
+            try {
+                const { data: configData, error: configErr } = await supabaseClient
+                    .from('einstellungen')
+                    .select('value')
+                    .eq('key', 'event_anfragen_aktiv')
+                    .maybeSingle();
+                
+                if (!configErr && configData) {
+                    anfragenErlaubt = configData.value === 'true';
+                }
+            } catch (e) {
+                console.log("Config Info:", e);
+            }
 
             // 1. Tabelle 'events' auslesen
             try {
@@ -272,7 +315,7 @@
                 buttonText: { today: 'Heute' },
                 events: calendarEvents,
                 
-                // Klick auf bestehendes Event -> Teilnahme-Modal
+                // Event-Klick: Anmeldung zu bestehenden Terminen
                 eventClick: function(info) {
                     const evt = info.event;
                     const props = evt.extendedProps || {};
@@ -311,7 +354,7 @@
                     document.getElementById('eventDetailModal').style.display = 'flex';
                 },
 
-                // Klick auf freies Datum -> Öffnet direkt das professionelle Kontaktformular
+                // Klick auf freies Datum: Passt die Maske dynamisch an
                 dateClick: function(info) {
                     const rawDate = info.dateStr;
                     const dateFormatted = new Date(rawDate).toLocaleDateString('de-DE');
@@ -319,12 +362,43 @@
                     document.getElementById('reqDateDisplay').innerText = dateFormatted;
                     document.getElementById('reqDateValue').value = rawDate;
 
+                    const badge = document.getElementById('modalBadge');
+                    const headerTitle = document.getElementById('modalHeaderTitle');
+                    const lblTitle = document.getElementById('lblTitle');
+                    const rowPersonenAndNotes = document.getElementById('rowPersonenAndNotes');
+                    const grpMessageArea = document.getElementById('grpMessageArea');
+                    const btnSubmit = document.getElementById('btnSubmitRequest');
+
+                    if (anfragenErlaubt) {
+                        // AKTIV: Echte Buchungsanfrage (Formular 1)
+                        badge.innerText = 'Buchungsanfrage';
+                        badge.style.background = '#fef3c7';
+                        badge.style.color = '#92400e';
+                        headerTitle.innerText = 'Veranstalter- / Terminanfrage';
+                        lblTitle.innerText = 'Name der geplanten Veranstaltung / Anlass:';
+                        rowPersonenAndNotes.style.display = 'grid';
+                        grpMessageArea.classList.add('hidden');
+                        btnSubmit.style.background = '#059669';
+                        btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Buchungsanfrage absenden';
+                    } else {
+                        // INAKTIV: Allgemeines Kontaktformular (Formular 2)
+                        badge.innerText = 'Kontaktformular';
+                        badge.style.background = '#e0f2fe';
+                        badge.style.color = '#0369a1';
+                        headerTitle.innerText = 'Allgemeine Anfrage senden';
+                        lblTitle.innerText = 'Betreff / Thema:';
+                        rowPersonenAndNotes.style.display = 'none';
+                        grpMessageArea.classList.remove('hidden');
+                        btnSubmit.style.background = '#2563eb';
+                        btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Nachricht per E-Mail senden';
+                    }
+
                     document.getElementById('bookingRequestModal').style.display = 'flex';
                 }
             });
             calendar.render();
 
-            // 4. Formular: Teilnahme an Events (Supabase)
+            // 4. Formular 1: Teilnahme
             const partForm = document.getElementById('participateForm');
             if (partForm) {
                 partForm.addEventListener('submit', async function(e) {
@@ -346,10 +420,81 @@
                     }]);
 
                     if (!error) {
+                        // Info-Mail auch bei Teilnahme senden
+                        sendEmailNotification({
+                            _subject: `Neue Teilnahme-Anmeldung: ${title}`,
+                            Veranstaltung: title,
+                            Datum: date,
+                            Name: name,
+                            Email: email,
+                            Personen: count,
+                            Hinweis: notes
+                        });
+
                         alert('Deine Teilnahme wurde erfolgreich angemeldet!');
                         closeModals();
                         partForm.reset();
                     } else { alert('Fehler: ' + error.message); }
+                });
+            }
+
+            // 5. Formular 2: Veranstalter / Kontaktanfrage
+            const orgForm = document.getElementById('organizerForm');
+            if (orgForm) {
+                orgForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const title = document.getElementById('reqTitle').value;
+                    const date = document.getElementById('reqDateValue').value;
+                    const name = document.getElementById('reqName').value;
+                    const email = document.getElementById('reqEmail').value;
+
+                    if (anfragenErlaubt) {
+                        // CASE 1: AKTIV -> In Supabase speichern UND per E-Mail verschicken
+                        const count = parseInt(document.getElementById('reqCount').value) || 1;
+                        const notes = document.getElementById('reqNotes').value;
+
+                        const { error } = await supabaseClient.from('event_bookings').insert([{
+                            event_name: `[Veranstalter-Anfrage] ${title} (Datum: ${date})`,
+                            applicant_name: name,
+                            email: email,
+                            count: count,
+                            notes: notes,
+                            status: 'pending'
+                        }]);
+
+                        if (!error) {
+                            // E-Mail per FormSubmit schicken
+                            sendEmailNotification({
+                                _subject: `[Neue Buchungsanfrage] ${title} am ${date}`,
+                                Datum: date,
+                                Anlass: title,
+                                Name_Organisation: name,
+                                Email: email,
+                                Erwartete_Personen: count,
+                                Details: notes
+                            });
+
+                            alert('Deine Veranstalter-Buchungsanfrage wurde erfolgreich übermittelt!');
+                            closeModals();
+                            orgForm.reset();
+                        } else { alert('Fehler: ' + error.message); }
+                    } else {
+                        // CASE 2: INAKTIV -> Nur per E-Mail an Vorstand senden (nicht in Supabase)
+                        const message = document.getElementById('reqMessage').value;
+
+                        await sendEmailNotification({
+                            _subject: `[Allgemeine Kalender-Anfrage] ${title} für den ${date}`,
+                            Datum: date,
+                            Betreff: title,
+                            Absender: name,
+                            Email: email,
+                            Nachricht: message
+                        });
+
+                        alert('Deine Nachricht wurde erfolgreich per E-Mail an den Vorstand übermittelt!');
+                        closeModals();
+                        orgForm.reset();
+                    }
                 });
             }
         });
